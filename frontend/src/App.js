@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Feed from './pages/Feed';
+import Profile from './pages/Profile';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -71,6 +72,16 @@ function App() {
                         )
                     }
                 />
+                <Route
+                    path="/profile"
+                    element={
+                        isAuthenticated ? (
+                            <Profile onLogout={handleLogout} />
+                        ) : (
+                            <Navigate to="/login" replace />
+                        )
+                    }
+                />
                 <Route path="/" element={<Navigate to="/feed" replace />} />
             </Routes>
         </Router>
@@ -78,3 +89,4 @@ function App() {
 }
 
 export default App;
+

@@ -3,8 +3,24 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 const authMiddleware = require('../middleware/auth');
+const multer = require('multer');
 
 const router = express.Router();
+
+// Configure multer for memory storage
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+        // Accept images only
+        if (!file.mimetype.startsWith('image/')) {
+            return cb(new Error('Only image files are allowed!'), false);
+        }
+        cb(null, true);
+    }
+});
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -109,7 +125,10 @@ router.post('/login', async (req, res) => {
             user: {
                 id: user.id,
                 username: user.username,
-                email: user.email
+                email: user.email,
+                profile_picture: user.profile_picture,
+                bio: user.bio,
+                full_name: user.full_name
             }
         });
     } catch (error) {
@@ -123,7 +142,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     try {
         const { data: user, error } = await supabase
             .from('users')
-            .select('id, username, email, created_at')
+            .select('id, username, email, profile_picture, bio, full_name, created_at')
             .eq('id', req.user.userId)
             .single();
 
@@ -138,4 +157,85 @@ router.get('/me', authMiddleware, async (req, res) => {
     }
 });
 
+// Update Profile (with optional profile picture)
+router.put('/profile', authMiddleware, upload.single('profile_picture'), async (req, res) => {
+    try {
+        const { full_name, bio, username } = req.body;
+        const profilePicture = req.file;
+        const userId = req.user.userId;
+
+        let profilePictureUrl = null;
+
+        // Upload profile picture to Supabase Storage if provided
+        if (profilePicture) {
+            const fileExt = profilePicture.originalname.split('.').pop();
+            const fileName = `profile.${fileExt}`;
+            const filePath = `profiles/${userId}/${fileName}`;
+
+            // Delete old profile picture if exists
+            const { data: oldUser } = await supabase
+                .from('users')
+                .select('profile_picture')
+                .eq('id', userId)
+                .single();
+
+            if (oldUser?.profile_picture) {
+                const oldPath = oldUser.profile_picture.split('/').slice(-2).join('/');
+                await supabase.storage
+                    .from('minisoso')
+                    .remove([oldPath]);
+            }
+
+            const { error: uploadError } = await supabase.storage
+                .from('minisoso')
+                .upload(filePath, profilePicture.buffer, {
+                    contentType: profilePicture.mimetype,
+                    cacheControl: '3600',
+                    upsert: true
+                });
+
+            if (uploadError) {
+                console.error('Image upload error:', uploadError);
+                return res.status(500).json({ error: 'Error uploading profile picture' });
+            }
+
+            // Get public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('minisoso')
+                .getPublicUrl(filePath);
+
+            profilePictureUrl = publicUrl;
+        }
+
+        // Build update object
+        const updateData = {};
+        if (full_name !== undefined) updateData.full_name = full_name;
+        if (bio !== undefined) updateData.bio = bio;
+        if (username !== undefined) updateData.username = username;
+        if (profilePictureUrl) updateData.profile_picture = profilePictureUrl;
+
+        // Update user profile
+        const { data: updatedUser, error } = await supabase
+            .from('users')
+            .update(updateData)
+            .eq('id', userId)
+            .select('id, username, email, profile_picture, bio, full_name')
+            .single();
+
+        if (error) {
+            console.error('Profile update error:', error);
+            return res.status(500).json({ error: 'Error updating profile' });
+        }
+
+        res.json({
+            message: 'Profile updated successfully',
+            user: updatedUser
+        });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 module.exports = router;
+

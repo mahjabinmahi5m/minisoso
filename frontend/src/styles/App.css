@@ -779,3 +779,366 @@ body {
     width: 100%;
   }
 }
+
+/* Profile Page Styles */
+.profile-container {
+  min-height: 100vh;
+  background: #fafafa;
+}
+
+.profile-header {
+  background: white;
+  border-bottom: 1px solid #dbdbdb;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: #262626;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.btn-back:hover {
+  background: #fafafa;
+}
+
+.btn-logout-profile {
+  background: transparent;
+  border: 1px solid #dbdbdb;
+  color: #262626;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-logout-profile:hover {
+  background: #fafafa;
+}
+
+.profile-content {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Profile View */
+.profile-view {
+  background: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+}
+
+.profile-avatar-large {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #dbdbdb;
+}
+
+.profile-avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-large .avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  font-weight: 700;
+}
+
+.profile-username {
+  font-size: 28px;
+  font-weight: 700;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.profile-fullname {
+  font-size: 18px;
+  color: #8e8e8e;
+  margin-bottom: 16px;
+}
+
+.profile-bio {
+  font-size: 16px;
+  color: #262626;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.profile-info {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  margin-bottom: 24px;
+  padding: 20px 0;
+  border-top: 1px solid #dbdbdb;
+  border-bottom: 1px solid #dbdbdb;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 12px;
+  color: #8e8e8e;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.info-value {
+  font-size: 16px;
+  color: #262626;
+  font-weight: 600;
+}
+
+.btn-edit-profile {
+  background: #0095f6;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.btn-edit-profile:hover {
+  background: #1877f2;
+}
+
+/* Profile Edit */
+.profile-edit {
+  background: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  padding: 40px;
+}
+
+.profile-edit h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #262626;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-picture-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.current-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #dbdbdb;
+}
+
+.current-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.current-avatar .avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.btn-upload-avatar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #dbdbdb;
+  color: #0095f6;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-upload-avatar:hover {
+  background: #fafafa;
+}
+
+.profile-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-form .form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.profile-form .form-group input,
+.profile-form .form-group textarea {
+  padding: 10px 12px;
+  border: 1px solid #dbdbdb;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fafafa;
+  transition: all 0.2s;
+}
+
+.profile-form .form-group input:focus,
+.profile-form .form-group textarea:focus {
+  outline: none;
+  border-color: #a8a8a8;
+  background: white;
+}
+
+.profile-form .form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.char-count {
+  font-size: 12px;
+  color: #8e8e8e;
+  text-align: right;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn-cancel {
+  flex: 1;
+  background: transparent;
+  border: 1px solid #dbdbdb;
+  color: #262626;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #fafafa;
+}
+
+.btn-save {
+  flex: 1;
+  background: #0095f6;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #1877f2;
+}
+
+.btn-save:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Header Avatar Styles */
+.btn-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.btn-profile:hover {
+  background: #fafafa;
+}
+
+.header-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #dbdbdb;
+}
+
+.header-avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  border: 2px solid #dbdbdb;
+}

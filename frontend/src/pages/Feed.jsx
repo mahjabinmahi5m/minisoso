@@ -277,7 +277,24 @@ function Feed({ onLogout }) {
                         <h1>Minisoso</h1>
                     </div>
                     <div className="user-info">
-                        <span className="username">@{currentUser?.username}</span>
+                        <button
+                            onClick={() => window.location.href = '/profile'}
+                            className="btn-profile"
+                            title="View Profile"
+                        >
+                            {currentUser?.profile_picture ? (
+                                <img
+                                    src={currentUser.profile_picture}
+                                    alt={currentUser.username}
+                                    className="header-avatar"
+                                />
+                            ) : (
+                                <div className="header-avatar-placeholder">
+                                    {currentUser?.username?.charAt(0).toUpperCase()}
+                                </div>
+                            )}
+                            <span className="username">@{currentUser?.username}</span>
+                        </button>
                         <button onClick={onLogout} className="btn-logout">
                             <BiLogOut /> Logout
                         </button>
