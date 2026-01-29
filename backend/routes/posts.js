@@ -1,8 +1,24 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const authMiddleware = require('../middleware/auth');
+const multer = require('multer');
 
 const router = express.Router();
+
+// Configure multer for memory storage
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+        // Accept images only
+        if (!file.mimetype.startsWith('image/')) {
+            return cb(new Error('Only image files are allowed!'), false);
+        }
+        cb(null, true);
+    }
+});
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -70,13 +86,42 @@ router.get('/', authMiddleware, async (req, res) => {
     }
 });
 
-// Create Post
-router.post('/', authMiddleware, async (req, res) => {
+// Create Post (with optional image)
+router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
     try {
         const { content } = req.body;
+        const imageFile = req.file;
 
         if (!content || content.trim() === '') {
             return res.status(400).json({ error: 'Post content cannot be empty' });
+        }
+
+        let imageUrl = null;
+
+        // Upload image to Supabase Storage if provided
+        if (imageFile) {
+            const fileExt = imageFile.originalname.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `${req.user.userId}/${fileName}`;
+
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('post-images')
+                .upload(filePath, imageFile.buffer, {
+                    contentType: imageFile.mimetype,
+                    cacheControl: '3600',
+                });
+
+            if (uploadError) {
+                console.error('Image upload error:', uploadError);
+                return res.status(500).json({ error: 'Error uploading image' });
+            }
+
+            // Get public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('post-images')
+                .getPublicUrl(filePath);
+
+            imageUrl = publicUrl;
         }
 
         const { data: newPost, error } = await supabase
@@ -84,7 +129,8 @@ router.post('/', authMiddleware, async (req, res) => {
             .insert([
                 {
                     user_id: req.user.userId,
-                    content: content.trim()
+                    content: content.trim(),
+                    image_url: imageUrl
                 }
             ])
             .select(`

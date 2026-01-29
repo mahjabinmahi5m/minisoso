@@ -5,12 +5,15 @@ import { FaRegComment } from 'react-icons/fa';
 import { IoSendSharp } from 'react-icons/io5';
 import { RiDeleteBin6Line } from 'react-icons/ri';
 import { BiLogOut } from 'react-icons/bi';
+import { MdImage, MdClose } from 'react-icons/md';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 function Feed({ onLogout }) {
     const [posts, setPosts] = useState([]);
     const [newPost, setNewPost] = useState('');
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [loading, setLoading] = useState(true);
     const [posting, setPosting] = useState(false);
     const [error, setError] = useState('');
@@ -47,6 +50,26 @@ function Feed({ onLogout }) {
         }
     };
 
+    const handleImageSelect = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                setError('Image size should be less than 5MB');
+                return;
+            }
+            setSelectedImage(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setSelectedImage(null);
+        setImagePreview(null);
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+        }
+    };
+
     const handleCreatePost = async (e) => {
         e.preventDefault();
 
@@ -59,12 +82,21 @@ function Feed({ onLogout }) {
 
         try {
             const token = localStorage.getItem('token');
+
+            // Create FormData for multipart/form-data
+            const formData = new FormData();
+            formData.append('content', newPost);
+            if (selectedImage) {
+                formData.append('image', selectedImage);
+            }
+
             const response = await axios.post(
                 `${API_URL}/api/posts`,
-                { content: newPost },
+                formData,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
                     }
                 }
             );
@@ -77,6 +109,7 @@ function Feed({ onLogout }) {
                 is_liked: false
             }, ...posts]);
             setNewPost('');
+            handleRemoveImage();
         } catch (err) {
             console.error('Error creating post:', err);
             setError('Failed to create post');
@@ -261,8 +294,34 @@ function Feed({ onLogout }) {
                             rows="4"
                             maxLength="500"
                         />
+
+                        {imagePreview && (
+                            <div className="image-preview">
+                                <img src={imagePreview} alt="Preview" />
+                                <button
+                                    type="button"
+                                    className="btn-remove-image"
+                                    onClick={handleRemoveImage}
+                                >
+                                    <MdClose />
+                                </button>
+                            </div>
+                        )}
+
                         <div className="form-footer">
-                            <span className="char-count">{newPost.length}/500</span>
+                            <div className="form-footer-left">
+                                <input
+                                    type="file"
+                                    id="image-upload"
+                                    accept="image/*"
+                                    onChange={handleImageSelect}
+                                    style={{ display: 'none' }}
+                                />
+                                <label htmlFor="image-upload" className="btn-image-upload">
+                                    <MdImage /> Photo
+                                </label>
+                                <span className="char-count">{newPost.length}/500</span>
+                            </div>
                             <button type="submit" className="btn-post" disabled={posting || !newPost.trim()}>
                                 {posting ? 'Posting...' : 'Post'}
                             </button>
@@ -308,6 +367,12 @@ function Feed({ onLogout }) {
                                     <div className="post-content">
                                         <p>{post.content}</p>
                                     </div>
+
+                                    {post.image_url && (
+                                        <div className="post-image">
+                                            <img src={post.image_url} alt="Post" />
+                                        </div>
+                                    )}
 
                                     {/* Like and Comment Actions */}
                                     <div className="post-actions">

@@ -268,11 +268,78 @@ body {
   border-color: #a8a8a8;
 }
 
+/* Image Preview */
+.image-preview {
+  position: relative;
+  margin-top: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  max-height: 400px;
+}
+
+.image-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.btn-remove-image {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  transition: all 0.2s ease;
+}
+
+.btn-remove-image:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
 .form-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 12px;
+}
+
+.form-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-image-upload {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  color: #0095f6;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-image-upload:hover {
+  background: #f0f0f0;
+}
+
+.btn-image-upload svg {
+  font-size: 20px;
 }
 
 .char-count {
@@ -415,6 +482,24 @@ body {
   font-size: 14px;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+/* Post Image */
+.post-image {
+  width: 100%;
+  max-height: 600px;
+  overflow: hidden;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
 }
 
 /* Post Actions (Like & Comment Buttons) */
