@@ -40,44 +40,46 @@ function Login({ onLogin }) {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <div className="auth-header">
-                    <h1>Welcome Back! 👋</h1>
-                    <p>Login to your account</p>
+                <div className="auth-logo">
+                    <img src="/logo.svg" alt="Minisoso" />
+                    <h1>Minisoso</h1>
                 </div>
 
                 {error && <div className="error-message">{error}</div>}
 
                 <form onSubmit={handleSubmit} className="auth-form">
                     <div className="form-group">
-                        <label htmlFor="email">Email</label>
                         <input
                             type="email"
                             id="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="Enter your email"
+                            placeholder="Email"
                             required
                         />
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="password">Password</label>
                         <input
                             type="password"
                             id="password"
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            placeholder="Enter your password"
+                            placeholder="Password"
                             required
                         />
                     </div>
 
                     <button type="submit" className="btn-primary" disabled={loading}>
-                        {loading ? 'Logging in...' : 'Login'}
+                        {loading ? 'Logging in...' : 'Log in'}
                     </button>
                 </form>
+
+                <div className="auth-divider">
+                    <span>OR</span>
+                </div>
 
                 <div className="auth-footer">
                     <p>
@@ -90,3 +92,4 @@ function Login({ onLogin }) {
 }
 
 export default Login;
+

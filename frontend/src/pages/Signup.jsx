@@ -63,74 +63,76 @@ function Signup() {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <div className="auth-header">
-                    <h1>Create Account 🚀</h1>
-                    <p>Join our community today</p>
+                <div className="auth-logo">
+                    <img src="/logo.svg" alt="Minisoso" />
+                    <h1>Minisoso</h1>
                 </div>
+
+                <p className="auth-tagline">Sign up to see photos and videos from your friends.</p>
 
                 {error && <div className="error-message">{error}</div>}
 
                 <form onSubmit={handleSubmit} className="auth-form">
                     <div className="form-group">
-                        <label htmlFor="username">Username</label>
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            placeholder="Choose a username"
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="email">Email</label>
                         <input
                             type="email"
                             id="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="Enter your email"
+                            placeholder="Email"
                             required
                         />
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="password">Password</label>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            value={formData.username}
+                            onChange={handleChange}
+                            placeholder="Username"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
                         <input
                             type="password"
                             id="password"
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            placeholder="Create a password (min 6 characters)"
+                            placeholder="Password"
                             required
                         />
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="confirmPassword">Confirm Password</label>
                         <input
                             type="password"
                             id="confirmPassword"
                             name="confirmPassword"
                             value={formData.confirmPassword}
                             onChange={handleChange}
-                            placeholder="Confirm your password"
+                            placeholder="Confirm Password"
                             required
                         />
                     </div>
 
                     <button type="submit" className="btn-primary" disabled={loading}>
-                        {loading ? 'Creating Account...' : 'Sign Up'}
+                        {loading ? 'Signing up...' : 'Sign up'}
                     </button>
                 </form>
 
+                <div className="auth-divider">
+                    <span>OR</span>
+                </div>
+
                 <div className="auth-footer">
                     <p>
-                        Already have an account? <Link to="/login">Login</Link>
+                        Have an account? <Link to="/login">Log in</Link>
                     </p>
                 </div>
             </div>
@@ -139,3 +141,4 @@ function Signup() {
 }
 
 export default Signup;
+
