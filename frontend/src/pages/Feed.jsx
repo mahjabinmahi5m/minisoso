@@ -239,7 +239,7 @@ function Feed({ onLogout }) {
         <div className="feed-container">
             <header className="feed-header">
                 <div className="header-content">
-                    <h1>Mini Social</h1>
+                    <h1>Minisoso</h1>
                     <div className="user-info">
                         <span className="username">@{currentUser?.username}</span>
                         <button onClick={onLogout} className="btn-logout">

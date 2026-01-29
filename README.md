@@ -1,4 +1,4 @@
-# Mini Social Media Application
+# Minisoso
 
 A full-stack social media application built with React, Node.js, and Supabase.
 
