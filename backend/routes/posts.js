@@ -105,7 +105,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
             const filePath = `${req.user.userId}/${fileName}`;
 
             const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('post-images')
+                .from('minisoso')
                 .upload(filePath, imageFile.buffer, {
                     contentType: imageFile.mimetype,
                     cacheControl: '3600',
@@ -118,7 +118,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
 
             // Get public URL
             const { data: { publicUrl } } = supabase.storage
-                .from('post-images')
+                .from('minisoso')
                 .getPublicUrl(filePath);
 
             imageUrl = publicUrl;
