@@ -178,7 +178,9 @@ router.put('/profile', authMiddleware, upload.single('profile_picture'), async (
                 .jpeg({ quality: 85 })
                 .toBuffer();
 
-            const fileName = `profile.jpg`;
+            // Add timestamp to filename to avoid caching issues
+            const timestamp = Date.now();
+            const fileName = `profile-${timestamp}.jpg`;
             const filePath = `profiles/${userId}/${fileName}`;
 
             // Delete old profile picture if exists
@@ -189,10 +191,17 @@ router.put('/profile', authMiddleware, upload.single('profile_picture'), async (
                 .single();
 
             if (oldUser?.profile_picture) {
-                const oldPath = oldUser.profile_picture.split('/').slice(-2).join('/');
-                await supabase.storage
-                    .from('minisoso')
-                    .remove([oldPath]);
+                try {
+                    // Extract the file path from the URL
+                    const urlParts = oldUser.profile_picture.split('/');
+                    const oldPath = `profiles/${userId}/${urlParts[urlParts.length - 1].split('?')[0]}`;
+                    await supabase.storage
+                        .from('minisoso')
+                        .remove([oldPath]);
+                } catch (deleteError) {
+                    console.log('Could not delete old profile picture:', deleteError);
+                    // Continue anyway - not critical
+                }
             }
 
             const { error: uploadError } = await supabase.storage
@@ -200,7 +209,7 @@ router.put('/profile', authMiddleware, upload.single('profile_picture'), async (
                 .upload(filePath, optimizedBuffer, {
                     contentType: 'image/jpeg',
                     cacheControl: '3600',
-                    upsert: true
+                    upsert: false
                 });
 
             if (uploadError) {
@@ -208,12 +217,12 @@ router.put('/profile', authMiddleware, upload.single('profile_picture'), async (
                 return res.status(500).json({ error: 'Error uploading profile picture' });
             }
 
-            // Get public URL
+            // Get public URL with cache-busting parameter
             const { data: { publicUrl } } = supabase.storage
                 .from('minisoso')
                 .getPublicUrl(filePath);
 
-            profilePictureUrl = publicUrl;
+            profilePictureUrl = `${publicUrl}?t=${timestamp}`;
         }
 
         // Build update object

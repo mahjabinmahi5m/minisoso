@@ -86,14 +86,20 @@ function Profile({ onLogout }) {
                 }
             });
 
-            setUser(response.data.user);
-            setEditing(false);
+            // Clear image states
             setSelectedImage(null);
             setImagePreview(null);
+
+            // Update user state with new data
+            setUser(response.data.user);
+            setEditing(false);
 
             // Update localStorage
             const storedUser = JSON.parse(localStorage.getItem('user'));
             localStorage.setItem('user', JSON.stringify({ ...storedUser, ...response.data.user }));
+
+            // Force refresh to get the latest profile picture
+            await fetchUserProfile();
         } catch (err) {
             console.error('Error updating profile:', err);
             setError(err.response?.data?.error || 'Failed to update profile');
