@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
+import { FaRegComment } from 'react-icons/fa';
+import { IoSendSharp } from 'react-icons/io5';
+import { RiDeleteBin6Line } from 'react-icons/ri';
+import { BiLogOut } from 'react-icons/bi';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -234,11 +239,11 @@ function Feed({ onLogout }) {
         <div className="feed-container">
             <header className="feed-header">
                 <div className="header-content">
-                    <h1>🌟 Mini Social</h1>
+                    <h1>Mini Social</h1>
                     <div className="user-info">
                         <span className="username">@{currentUser?.username}</span>
                         <button onClick={onLogout} className="btn-logout">
-                            Logout
+                            <BiLogOut /> Logout
                         </button>
                     </div>
                 </div>
@@ -296,7 +301,7 @@ function Feed({ onLogout }) {
                                                 className="btn-delete"
                                                 title="Delete post"
                                             >
-                                                🗑️
+                                                <RiDeleteBin6Line />
                                             </button>
                                         )}
                                     </div>
@@ -310,7 +315,7 @@ function Feed({ onLogout }) {
                                             className={`action-btn like-btn ${post.is_liked ? 'liked' : ''}`}
                                             onClick={() => handleLikeToggle(post.id, post.is_liked)}
                                         >
-                                            <span className="icon">{post.is_liked ? '❤️' : '🤍'}</span>
+                                            {post.is_liked ? <AiFillHeart className="icon" /> : <AiOutlineHeart className="icon" />}
                                             <span className="count">{post.like_count || 0}</span>
                                         </button>
 
@@ -318,7 +323,7 @@ function Feed({ onLogout }) {
                                             className="action-btn comment-btn"
                                             onClick={() => toggleComments(post.id)}
                                         >
-                                            <span className="icon">💬</span>
+                                            <FaRegComment className="icon" />
                                             <span className="count">{post.comment_count || 0}</span>
                                         </button>
                                     </div>
@@ -345,7 +350,7 @@ function Feed({ onLogout }) {
                                                     disabled={postingComment[post.id] || !newComment[post.id]?.trim()}
                                                     className="btn-comment-submit"
                                                 >
-                                                    {postingComment[post.id] ? '...' : 'Send'}
+                                                    {postingComment[post.id] ? '...' : <IoSendSharp />}
                                                 </button>
                                             </form>
 
