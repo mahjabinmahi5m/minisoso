@@ -272,7 +272,10 @@ function Feed({ onLogout }) {
         <div className="feed-container">
             <header className="feed-header">
                 <div className="header-content">
-                    <h1>Minisoso</h1>
+                    <div className="logo-title">
+                        <img src="/logo.svg" alt="Minisoso Logo" className="app-logo" />
+                        <h1>Minisoso</h1>
+                    </div>
                     <div className="user-info">
                         <span className="username">@{currentUser?.username}</span>
                         <button onClick={onLogout} className="btn-logout">

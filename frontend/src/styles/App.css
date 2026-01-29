@@ -192,6 +192,18 @@ body {
   align-items: center;
 }
 
+.logo-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
 .feed-header h1 {
   font-size: 28px;
   font-weight: 700;
