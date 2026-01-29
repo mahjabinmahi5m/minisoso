@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 const authMiddleware = require('../middleware/auth');
 const multer = require('multer');
+const sharp = require('sharp');
 
 const router = express.Router();
 
@@ -168,8 +169,16 @@ router.put('/profile', authMiddleware, upload.single('profile_picture'), async (
 
         // Upload profile picture to Supabase Storage if provided
         if (profilePicture) {
-            const fileExt = profilePicture.originalname.split('.').pop();
-            const fileName = `profile.${fileExt}`;
+            // Optimize image with sharp - resize to 400x400 and convert to JPEG
+            const optimizedBuffer = await sharp(profilePicture.buffer)
+                .resize(400, 400, {
+                    fit: 'cover',
+                    position: 'center'
+                })
+                .jpeg({ quality: 85 })
+                .toBuffer();
+
+            const fileName = `profile.jpg`;
             const filePath = `profiles/${userId}/${fileName}`;
 
             // Delete old profile picture if exists
@@ -188,8 +197,8 @@ router.put('/profile', authMiddleware, upload.single('profile_picture'), async (
 
             const { error: uploadError } = await supabase.storage
                 .from('minisoso')
-                .upload(filePath, profilePicture.buffer, {
-                    contentType: profilePicture.mimetype,
+                .upload(filePath, optimizedBuffer, {
+                    contentType: 'image/jpeg',
                     cacheControl: '3600',
                     upsert: true
                 });

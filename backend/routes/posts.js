@@ -2,6 +2,7 @@ const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const authMiddleware = require('../middleware/auth');
 const multer = require('multer');
+const sharp = require('sharp');
 
 const router = express.Router();
 
@@ -101,14 +102,22 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
 
         // Upload image to Supabase Storage if provided
         if (imageFile) {
-            const fileExt = imageFile.originalname.split('.').pop();
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            // Optimize image with sharp
+            const optimizedBuffer = await sharp(imageFile.buffer)
+                .resize(1200, 1200, {
+                    fit: 'inside',
+                    withoutEnlargement: true
+                })
+                .jpeg({ quality: 80 })
+                .toBuffer();
+
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
             const filePath = `${req.user.userId}/${fileName}`;
 
             const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('minisoso')
-                .upload(filePath, imageFile.buffer, {
-                    contentType: imageFile.mimetype,
+                .upload(filePath, optimizedBuffer, {
+                    contentType: 'image/jpeg',
                     cacheControl: '3600',
                 });
 
