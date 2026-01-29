@@ -470,6 +470,21 @@ body {
   color: white;
   font-weight: 700;
   font-size: 14px;
+  overflow: hidden;
+  position: relative;
+}
+
+.user-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.user-avatar .avatar-letter {
+  z-index: 1;
 }
 
 .user-details {
@@ -689,6 +704,21 @@ body {
   font-weight: 700;
   font-size: 14px;
   flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.comment-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.comment-avatar .avatar-letter {
+  z-index: 1;
 }
 
 .comment-content {

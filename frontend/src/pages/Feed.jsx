@@ -367,7 +367,17 @@ function Feed({ onLogout }) {
                                     <div className="post-header">
                                         <div className="post-user">
                                             <div className="user-avatar">
-                                                {post.users?.username?.charAt(0).toUpperCase() || 'U'}
+                                                {post.users?.profile_picture ? (
+                                                    <img
+                                                        src={post.users.profile_picture}
+                                                        alt={post.users.username}
+                                                        className="avatar-img"
+                                                    />
+                                                ) : (
+                                                    <span className="avatar-letter">
+                                                        {post.users?.username?.charAt(0).toUpperCase() || 'U'}
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="user-details">
                                                 <span className="post-username">@{post.users?.username}</span>
@@ -446,7 +456,17 @@ function Feed({ onLogout }) {
                                                     comments[post.id].map((comment) => (
                                                         <div key={comment.id} className="comment-item">
                                                             <div className="comment-avatar">
-                                                                {comment.users?.username?.charAt(0).toUpperCase() || 'U'}
+                                                                {comment.users?.profile_picture ? (
+                                                                    <img
+                                                                        src={comment.users.profile_picture}
+                                                                        alt={comment.users.username}
+                                                                        className="avatar-img"
+                                                                    />
+                                                                ) : (
+                                                                    <span className="avatar-letter">
+                                                                        {comment.users?.username?.charAt(0).toUpperCase() || 'U'}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             <div className="comment-content">
                                                                 <div className="comment-header">

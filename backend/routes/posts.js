@@ -39,7 +39,8 @@ router.get('/', authMiddleware, async (req, res) => {
                 users (
                     id,
                     username,
-                    email
+                    email,
+                    profile_picture
                 )
             `)
             .order('created_at', { ascending: false });
@@ -306,7 +307,8 @@ router.get('/:id/comments', authMiddleware, async (req, res) => {
                 users (
                     id,
                     username,
-                    email
+                    email,
+                    profile_picture
                 )
             `)
             .eq('post_id', postId)
