@@ -11,6 +11,13 @@ function Feed({ onLogout }) {
     const [error, setError] = useState('');
     const [currentUser, setCurrentUser] = useState(null);
 
+    // Comment states
+    const [expandedComments, setExpandedComments] = useState({});
+    const [comments, setComments] = useState({});
+    const [newComment, setNewComment] = useState({});
+    const [loadingComments, setLoadingComments] = useState({});
+    const [postingComment, setPostingComment] = useState({});
+
     useEffect(() => {
         // Get current user from localStorage
         const user = JSON.parse(localStorage.getItem('user'));
@@ -57,8 +64,13 @@ function Feed({ onLogout }) {
                 }
             );
 
-            // Add new post to the beginning of the list
-            setPosts([response.data.post, ...posts]);
+            // Add new post to the beginning of the list with initial counts
+            setPosts([{
+                ...response.data.post,
+                like_count: 0,
+                comment_count: 0,
+                is_liked: false
+            }, ...posts]);
             setNewPost('');
         } catch (err) {
             console.error('Error creating post:', err);
@@ -86,6 +98,124 @@ function Feed({ onLogout }) {
         } catch (err) {
             console.error('Error deleting post:', err);
             alert('Failed to delete post');
+        }
+    };
+
+    // Like/Unlike functionality
+    const handleLikeToggle = async (postId, isLiked) => {
+        try {
+            const token = localStorage.getItem('token');
+
+            // Optimistic update
+            setPosts(posts.map(post => {
+                if (post.id === postId) {
+                    return {
+                        ...post,
+                        is_liked: !isLiked,
+                        like_count: isLiked ? post.like_count - 1 : post.like_count + 1
+                    };
+                }
+                return post;
+            }));
+
+            if (isLiked) {
+                // Unlike
+                await axios.delete(`${API_URL}/api/posts/${postId}/like`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } else {
+                // Like
+                await axios.post(`${API_URL}/api/posts/${postId}/like`, {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            }
+        } catch (err) {
+            console.error('Error toggling like:', err);
+            // Revert optimistic update on error
+            setPosts(posts.map(post => {
+                if (post.id === postId) {
+                    return {
+                        ...post,
+                        is_liked: isLiked,
+                        like_count: isLiked ? post.like_count + 1 : post.like_count - 1
+                    };
+                }
+                return post;
+            }));
+        }
+    };
+
+    // Comment functionality
+    const toggleComments = async (postId) => {
+        const isExpanded = expandedComments[postId];
+
+        setExpandedComments({
+            ...expandedComments,
+            [postId]: !isExpanded
+        });
+
+        // Fetch comments if expanding and not already loaded
+        if (!isExpanded && !comments[postId]) {
+            await fetchComments(postId);
+        }
+    };
+
+    const fetchComments = async (postId) => {
+        setLoadingComments({ ...loadingComments, [postId]: true });
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${API_URL}/api/posts/${postId}/comments`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setComments({ ...comments, [postId]: response.data.comments });
+        } catch (err) {
+            console.error('Error fetching comments:', err);
+        } finally {
+            setLoadingComments({ ...loadingComments, [postId]: false });
+        }
+    };
+
+    const handleAddComment = async (e, postId) => {
+        e.preventDefault();
+
+        const commentText = newComment[postId];
+        if (!commentText || !commentText.trim()) {
+            return;
+        }
+
+        setPostingComment({ ...postingComment, [postId]: true });
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(
+                `${API_URL}/api/posts/${postId}/comments`,
+                { content: commentText },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            // Add new comment to the list
+            setComments({
+                ...comments,
+                [postId]: [response.data.comment, ...(comments[postId] || [])]
+            });
+
+            // Update comment count in post
+            setPosts(posts.map(post => {
+                if (post.id === postId) {
+                    return { ...post, comment_count: response.data.comment_count };
+                }
+                return post;
+            }));
+
+            // Clear input
+            setNewComment({ ...newComment, [postId]: '' });
+        } catch (err) {
+            console.error('Error adding comment:', err);
+            alert('Failed to add comment');
+        } finally {
+            setPostingComment({ ...postingComment, [postId]: false });
         }
     };
 
@@ -173,6 +303,80 @@ function Feed({ onLogout }) {
                                     <div className="post-content">
                                         <p>{post.content}</p>
                                     </div>
+
+                                    {/* Like and Comment Actions */}
+                                    <div className="post-actions">
+                                        <button
+                                            className={`action-btn like-btn ${post.is_liked ? 'liked' : ''}`}
+                                            onClick={() => handleLikeToggle(post.id, post.is_liked)}
+                                        >
+                                            <span className="icon">{post.is_liked ? '❤️' : '🤍'}</span>
+                                            <span className="count">{post.like_count || 0}</span>
+                                        </button>
+
+                                        <button
+                                            className="action-btn comment-btn"
+                                            onClick={() => toggleComments(post.id)}
+                                        >
+                                            <span className="icon">💬</span>
+                                            <span className="count">{post.comment_count || 0}</span>
+                                        </button>
+                                    </div>
+
+                                    {/* Comments Section */}
+                                    {expandedComments[post.id] && (
+                                        <div className="comments-section">
+                                            <form
+                                                onSubmit={(e) => handleAddComment(e, post.id)}
+                                                className="comment-form"
+                                            >
+                                                <input
+                                                    type="text"
+                                                    placeholder="Write a comment..."
+                                                    value={newComment[post.id] || ''}
+                                                    onChange={(e) => setNewComment({
+                                                        ...newComment,
+                                                        [post.id]: e.target.value
+                                                    })}
+                                                    maxLength="500"
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    disabled={postingComment[post.id] || !newComment[post.id]?.trim()}
+                                                    className="btn-comment-submit"
+                                                >
+                                                    {postingComment[post.id] ? '...' : 'Send'}
+                                                </button>
+                                            </form>
+
+                                            <div className="comments-list">
+                                                {loadingComments[post.id] ? (
+                                                    <div className="loading-comments">Loading comments...</div>
+                                                ) : comments[post.id]?.length > 0 ? (
+                                                    comments[post.id].map((comment) => (
+                                                        <div key={comment.id} className="comment-item">
+                                                            <div className="comment-avatar">
+                                                                {comment.users?.username?.charAt(0).toUpperCase() || 'U'}
+                                                            </div>
+                                                            <div className="comment-content">
+                                                                <div className="comment-header">
+                                                                    <span className="comment-username">
+                                                                        @{comment.users?.username}
+                                                                    </span>
+                                                                    <span className="comment-time">
+                                                                        {formatDate(comment.created_at)}
+                                                                    </span>
+                                                                </div>
+                                                                <p className="comment-text">{comment.content}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="no-comments">No comments yet. Be the first!</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
