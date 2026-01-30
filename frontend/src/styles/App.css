@@ -2766,3 +2766,167 @@ body {
   color: var(--text-secondary);
   font-size: 14px;
 }
+
+/* ==================== MESSAGES PAGE TABS ==================== */
+
+/* Messages Tabs */
+.messages-tabs {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-color);
+  background: var(--card-bg);
+  padding: 0 20px;
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-button svg {
+  font-size: 20px;
+}
+
+.tab-button:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.tab-button.active {
+  color: #0095f6;
+  border-bottom-color: #0095f6;
+}
+
+.tab-button.active svg {
+  color: #0095f6;
+}
+
+/* Messages Container */
+.messages-container {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.messages-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.messages-main {
+  flex: 1;
+  max-width: 614px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Responsive tabs */
+@media (max-width: 480px) {
+  .tab-button span {
+    display: none;
+  }
+
+  .tab-button {
+    padding: 14px 10px;
+  }
+
+  .tab-button svg {
+    font-size: 22px;
+  }
+}
+
+/* ==================== PROFILE STATS ==================== */
+
+.profile-stats {
+  display: flex;
+  gap: 24px;
+  margin: 16px 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+}
+
+.stat-count {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .profile-stats {
+    gap: 16px;
+  }
+
+  .stat-count {
+    font-size: 16px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+}
+
+/* Edit Profile Button */
+.btn-edit-profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  margin-top: 16px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: 300px;
+}
+
+.btn-edit-profile:hover {
+  background: #0081d6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 149, 246, 0.3);
+}
+
+.btn-edit-profile svg {
+  font-size: 18px;
+}

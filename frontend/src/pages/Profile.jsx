@@ -24,6 +24,8 @@ function Profile({ onLogout }) {
     const [imagePreview, setImagePreview] = useState(null);
     const [updating, setUpdating] = useState(false);
     const [error, setError] = useState('');
+    const [followersCount, setFollowersCount] = useState(0);
+    const [followingCount, setFollowingCount] = useState(0);
     const navigate = useNavigate();
 
     // Comment states
@@ -54,11 +56,27 @@ function Profile({ onLogout }) {
                 username: response.data.user.username || '',
                 bio: response.data.user.bio || ''
             });
+
+            // Fetch follower counts
+            await fetchFollowerCounts(currentUser.id);
         } catch (err) {
             console.error('Error fetching profile:', err);
             setError('Failed to load profile');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchFollowerCounts = async (userId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${API_URL}/api/followers/counts/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setFollowersCount(response.data.followers_count || 0);
+            setFollowingCount(response.data.following_count || 0);
+        } catch (err) {
+            console.error('Error fetching follower counts:', err);
         }
     };
 
@@ -314,6 +332,22 @@ function Profile({ onLogout }) {
                                     {user?.bio && (
                                         <p className="profile-bio">{user.bio}</p>
                                     )}
+
+                                    {/* Follower/Following Stats */}
+                                    <div className="profile-stats">
+                                        <div className="stat-item">
+                                            <span className="stat-count">{posts.length}</span>
+                                            <span className="stat-label">{posts.length === 1 ? 'Post' : 'Posts'}</span>
+                                        </div>
+                                        <div className="stat-item">
+                                            <span className="stat-count">{followersCount}</span>
+                                            <span className="stat-label">{followersCount === 1 ? 'Follower' : 'Followers'}</span>
+                                        </div>
+                                        <div className="stat-item">
+                                            <span className="stat-count">{followingCount}</span>
+                                            <span className="stat-label">Following</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -8,7 +8,7 @@ import Profile from './pages/Profile';
 import UserProfile from './pages/UserProfile';
 import Messages from './pages/Messages';
 import Chat from './pages/Chat';
-import Groups from './pages/Groups';
+
 import GroupChat from './pages/GroupChat';
 
 function App() {
@@ -119,16 +119,7 @@ function App() {
                             )
                         }
                     />
-                    <Route
-                        path="/groups"
-                        element={
-                            isAuthenticated ? (
-                                <Groups />
-                            ) : (
-                                <Navigate to="/login" replace />
-                            )
-                        }
-                    />
+
                     <Route
                         path="/group/:groupId"
                         element={

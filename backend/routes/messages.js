@@ -37,6 +37,11 @@ router.get('/conversations', authenticateToken, async (req, res) => {
             const otherUserId = msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
             const otherUser = msg.sender_id === userId ? msg.receiver : msg.sender;
 
+            // Skip if other user doesn't exist (deleted user)
+            if (!otherUser || !otherUserId) {
+                return;
+            }
+
             if (!conversationsMap.has(otherUserId)) {
                 // Count unread messages from this user
                 const unreadCount = messages.filter(m =>
