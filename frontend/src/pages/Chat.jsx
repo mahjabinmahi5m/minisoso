@@ -101,8 +101,14 @@ function Chat() {
     const formatTime = (dateString) => {
         if (!dateString) return '';
 
+        // Ensure UTC parsing - add 'Z' if missing
+        let utcString = dateString;
+        if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
+            utcString = dateString + 'Z';
+        }
+
         // Parse the UTC timestamp from Supabase
-        const date = new Date(dateString);
+        const date = new Date(utcString);
         const now = new Date();
 
         // Calculate difference in seconds

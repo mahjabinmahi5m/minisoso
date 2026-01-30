@@ -64,7 +64,13 @@ function Messages() {
     const formatTime = (dateString) => {
         if (!dateString) return '';
 
-        const date = new Date(dateString);
+        // Ensure UTC parsing - add 'Z' if missing
+        let utcString = dateString;
+        if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
+            utcString = dateString + 'Z';
+        }
+
+        const date = new Date(utcString);
         const now = new Date();
         const diffInSeconds = Math.floor((now - date) / 1000);
 
