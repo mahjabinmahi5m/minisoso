@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { BiArrowBack } from 'react-icons/bi';
-import { IoSendSharp } from 'react-icons/io5';
+import { IoSendSharp, IoCheckmark, IoCheckmarkDone } from 'react-icons/io5';
 import { BsMoonStarsFill, BsSunFill } from 'react-icons/bs';
 import { useTheme } from '../context/ThemeContext';
 
@@ -99,14 +99,31 @@ function Chat() {
     };
 
     const formatTime = (dateString) => {
+        if (!dateString) return '';
+
+        // Parse the UTC timestamp from Supabase
         const date = new Date(dateString);
         const now = new Date();
+
+        // Calculate difference in seconds
         const diffInSeconds = Math.floor((now - date) / 1000);
 
+        // Less than 1 minute
         if (diffInSeconds < 60) return 'Just now';
-        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
 
+        // Less than 1 hour
+        if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `${minutes}m ago`;
+        }
+
+        // Less than 24 hours
+        if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `${hours}h ago`;
+        }
+
+        // More than 24 hours - show time
         const hours = date.getHours();
         const minutes = date.getMinutes();
         const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -197,9 +214,20 @@ function Chat() {
                                         )}
                                         <div className="message-bubble">
                                             <p className="message-content">{message.content}</p>
-                                            <span className="message-time">
-                                                {formatTime(message.created_at)}
-                                            </span>
+                                            <div className="message-footer">
+                                                <span className="message-time">
+                                                    {formatTime(message.created_at)}
+                                                </span>
+                                                {isSentByMe && (
+                                                    <span className={`message-status ${message.is_read ? 'read' : 'delivered'}`}>
+                                                        {message.is_read ? (
+                                                            <IoCheckmarkDone />
+                                                        ) : (
+                                                            <IoCheckmark />
+                                                        )}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 );

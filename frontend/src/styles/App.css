@@ -2215,14 +2215,41 @@ body {
 }
 
 .message-time {
-  display: block;
   font-size: 11px;
   color: var(--text-secondary);
-  margin-top: 4px;
 }
 
 .message-item.sent .message-time {
   color: rgba(255, 255, 255, 0.8);
+}
+
+/* Message Footer (time + status) */
+.message-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  justify-content: flex-end;
+}
+
+/* Read Status Icons */
+.message-status {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.message-status.delivered {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.message-status.read {
+  color: #4fc3f7;
+}
+
+.message-item.sent .message-status svg {
+  display: block;
 }
 
 /* Chat Footer */
