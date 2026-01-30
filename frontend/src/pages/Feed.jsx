@@ -34,6 +34,18 @@ function Feed({ onLogout }) {
         const user = JSON.parse(localStorage.getItem('user'));
         setCurrentUser(user);
         fetchPosts();
+
+        // Listen for profile updates
+        const handleProfileUpdate = () => {
+            const updatedUser = JSON.parse(localStorage.getItem('user'));
+            setCurrentUser(updatedUser);
+        };
+
+        window.addEventListener('profileUpdated', handleProfileUpdate);
+
+        return () => {
+            window.removeEventListener('profileUpdated', handleProfileUpdate);
+        };
     }, []);
 
     const fetchPosts = async () => {

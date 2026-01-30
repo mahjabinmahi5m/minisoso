@@ -115,6 +115,9 @@ function Profile({ onLogout }) {
             const storedUser = JSON.parse(localStorage.getItem('user'));
             localStorage.setItem('user', JSON.stringify({ ...storedUser, ...response.data.user }));
 
+            // Dispatch event to notify other components
+            window.dispatchEvent(new Event('profileUpdated'));
+
             // Refresh profile
             await fetchUserProfile();
         } catch (err) {

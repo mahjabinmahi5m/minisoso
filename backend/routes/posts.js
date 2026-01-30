@@ -229,7 +229,8 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
         users (
           id,
           username,
-          email
+          email,
+          profile_picture
         )
       `)
             .single();
@@ -456,7 +457,8 @@ router.post('/:id/comments', authMiddleware, async (req, res) => {
                 users (
                     id,
                     username,
-                    email
+                    email,
+                    profile_picture
                 )
             `)
             .single();
