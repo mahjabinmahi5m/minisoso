@@ -88,6 +88,87 @@ router.get('/', authMiddleware, async (req, res) => {
     }
 });
 
+// Get Posts by User ID
+router.get('/user/:userId', authMiddleware, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const currentUserId = req.user.userId;
+
+        // Fetch user info
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('id, username, email, full_name, bio, profile_picture, created_at')
+            .eq('id', userId)
+            .single();
+
+        if (userError || !user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Fetch posts by this user
+        const { data: posts, error: postsError } = await supabase
+            .from('posts')
+            .select(`
+                *,
+                users (
+                    id,
+                    username,
+                    email,
+                    profile_picture
+                )
+            `)
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (postsError) {
+            console.error('Supabase error:', postsError);
+            return res.status(500).json({ error: 'Error fetching user posts' });
+        }
+
+        // For each post, get like count, comment count, and user's like status
+        const postsWithCounts = await Promise.all((posts || []).map(async (post) => {
+            // Get like count
+            const { count: likeCount } = await supabase
+                .from('likes')
+                .select('*', { count: 'exact', head: true })
+                .eq('post_id', post.id);
+
+            // Get comment count
+            const { count: commentCount } = await supabase
+                .from('comments')
+                .select('*', { count: 'exact', head: true })
+                .eq('post_id', post.id);
+
+            // Check if current user has liked this post
+            const { data: userLike } = await supabase
+                .from('likes')
+                .select('id')
+                .eq('post_id', post.id)
+                .eq('user_id', currentUserId)
+                .single();
+
+            return {
+                ...post,
+                like_count: likeCount || 0,
+                comment_count: commentCount || 0,
+                is_liked: !!userLike
+            };
+        }));
+
+        // Get post count
+        const postCount = postsWithCounts.length;
+
+        res.json({
+            user,
+            posts: postsWithCounts,
+            post_count: postCount
+        });
+    } catch (error) {
+        console.error('Get user posts error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Create Post (with optional image)
 router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
     try {

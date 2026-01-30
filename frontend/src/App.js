@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Feed from './pages/Feed';
 import Profile from './pages/Profile';
+import UserProfile from './pages/UserProfile';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -82,6 +83,16 @@ function App() {
                         )
                     }
                 />
+                <Route
+                    path="/user/:userId"
+                    element={
+                        isAuthenticated ? (
+                            <UserProfile />
+                        ) : (
+                            <Navigate to="/login" replace />
+                        )
+                    }
+                />
                 <Route path="/" element={<Navigate to="/feed" replace />} />
             </Routes>
         </Router>
@@ -89,4 +100,5 @@ function App() {
 }
 
 export default App;
+
 

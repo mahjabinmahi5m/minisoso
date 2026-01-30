@@ -1,26 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { BiArrowBack } from 'react-icons/bi';
 import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 import { FaRegComment } from 'react-icons/fa';
 import { IoSendSharp } from 'react-icons/io5';
-import { RiDeleteBin6Line } from 'react-icons/ri';
-import { BiLogOut } from 'react-icons/bi';
-import { MdImage, MdClose } from 'react-icons/md';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-function Feed({ onLogout }) {
+function UserProfile() {
+    const { userId } = useParams();
     const navigate = useNavigate();
+    const [userData, setUserData] = useState(null);
     const [posts, setPosts] = useState([]);
-    const [newPost, setNewPost] = useState('');
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [posting, setPosting] = useState(false);
     const [error, setError] = useState('');
     const [currentUser, setCurrentUser] = useState(null);
-    const [isPostExpanded, setIsPostExpanded] = useState(false);
 
     // Comment states
     const [expandedComments, setExpandedComments] = useState({});
@@ -30,120 +25,27 @@ function Feed({ onLogout }) {
     const [postingComment, setPostingComment] = useState({});
 
     useEffect(() => {
-        // Get current user from localStorage
         const user = JSON.parse(localStorage.getItem('user'));
         setCurrentUser(user);
-        fetchPosts();
-    }, []);
+        fetchUserProfile();
+    }, [userId]);
 
-    const fetchPosts = async () => {
+    const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get(`${API_URL}/api/posts`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+            const response = await axios.get(`${API_URL}/api/posts/user/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` }
             });
+            setUserData(response.data.user);
             setPosts(response.data.posts);
-            setLoading(false);
         } catch (err) {
-            console.error('Error fetching posts:', err);
-            setError('Failed to load posts');
-            setLoading(false);
-        }
-    };
-
-    const handleImageSelect = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                setError('Image size should be less than 5MB');
-                return;
-            }
-            setSelectedImage(file);
-            setImagePreview(URL.createObjectURL(file));
-        }
-    };
-
-    const handleRemoveImage = () => {
-        setSelectedImage(null);
-        setImagePreview(null);
-        if (imagePreview) {
-            URL.revokeObjectURL(imagePreview);
-        }
-    };
-
-    const handleCreatePost = async (e) => {
-        e.preventDefault();
-
-        if (!newPost.trim()) {
-            return;
-        }
-
-        setPosting(true);
-        setError('');
-
-        try {
-            const token = localStorage.getItem('token');
-
-            // Create FormData for multipart/form-data
-            const formData = new FormData();
-            formData.append('content', newPost);
-            if (selectedImage) {
-                formData.append('image', selectedImage);
-            }
-
-            const response = await axios.post(
-                `${API_URL}/api/posts`,
-                formData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data'
-                    }
-                }
-            );
-
-            // Add new post to the beginning of the list with initial counts
-            setPosts([{
-                ...response.data.post,
-                like_count: 0,
-                comment_count: 0,
-                is_liked: false
-            }, ...posts]);
-            setNewPost('');
-            handleRemoveImage();
-            setIsPostExpanded(false); // Collapse the post box
-        } catch (err) {
-            console.error('Error creating post:', err);
-            setError('Failed to create post');
+            console.error('Error fetching user profile:', err);
+            setError('Failed to load user profile');
         } finally {
-            setPosting(false);
+            setLoading(false);
         }
     };
 
-    const handleDeletePost = async (postId) => {
-        if (!window.confirm('Are you sure you want to delete this post?')) {
-            return;
-        }
-
-        try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`${API_URL}/api/posts/${postId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-
-            // Remove post from list
-            setPosts(posts.filter(post => post.id !== postId));
-        } catch (err) {
-            console.error('Error deleting post:', err);
-            alert('Failed to delete post');
-        }
-    };
-
-    // Like/Unlike functionality
     const handleLikeToggle = async (postId, isLiked) => {
         try {
             const token = localStorage.getItem('token');
@@ -161,19 +63,17 @@ function Feed({ onLogout }) {
             }));
 
             if (isLiked) {
-                // Unlike
                 await axios.delete(`${API_URL}/api/posts/${postId}/like`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } else {
-                // Like
                 await axios.post(`${API_URL}/api/posts/${postId}/like`, {}, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             }
         } catch (err) {
             console.error('Error toggling like:', err);
-            // Revert optimistic update on error
+            // Revert optimistic update
             setPosts(posts.map(post => {
                 if (post.id === postId) {
                     return {
@@ -187,16 +87,13 @@ function Feed({ onLogout }) {
         }
     };
 
-    // Comment functionality
     const toggleComments = async (postId) => {
         const isExpanded = expandedComments[postId];
-
         setExpandedComments({
             ...expandedComments,
             [postId]: !isExpanded
         });
 
-        // Fetch comments if expanding and not already loaded
         if (!isExpanded && !comments[postId]) {
             await fetchComments(postId);
         }
@@ -219,11 +116,8 @@ function Feed({ onLogout }) {
 
     const handleAddComment = async (e, postId) => {
         e.preventDefault();
-
         const commentText = newComment[postId];
-        if (!commentText || !commentText.trim()) {
-            return;
-        }
+        if (!commentText || !commentText.trim()) return;
 
         setPostingComment({ ...postingComment, [postId]: true });
 
@@ -232,18 +126,14 @@ function Feed({ onLogout }) {
             const response = await axios.post(
                 `${API_URL}/api/posts/${postId}/comments`,
                 { content: commentText },
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            // Add new comment to the list
             setComments({
                 ...comments,
                 [postId]: [response.data.comment, ...(comments[postId] || [])]
             });
 
-            // Update comment count in post
             setPosts(posts.map(post => {
                 if (post.id === postId) {
                     return { ...post, comment_count: response.data.comment_count };
@@ -251,11 +141,9 @@ function Feed({ onLogout }) {
                 return post;
             }));
 
-            // Clear input
             setNewComment({ ...newComment, [postId]: '' });
         } catch (err) {
             console.error('Error adding comment:', err);
-            alert('Failed to add comment');
         } finally {
             setPostingComment({ ...postingComment, [postId]: false });
         }
@@ -272,164 +160,78 @@ function Feed({ onLogout }) {
         return `${Math.floor(diffInSeconds / 86400)}d ago`;
     };
 
+    if (loading) {
+        return (
+            <div className="loading-screen">
+                <div className="spinner"></div>
+                <p>Loading profile...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="error-screen">
+                <p>{error}</p>
+                <button onClick={() => navigate('/feed')} className="btn-primary">
+                    Back to Feed
+                </button>
+            </div>
+        );
+    }
+
     return (
-        <div className="feed-container">
-            <header className="feed-header">
-                <div className="header-content">
-                    <div className="logo-title">
-                        <img src="/logo.svg" alt="Minisoso Logo" className="app-logo" />
-                        <h1>Minisoso</h1>
-                    </div>
-                    <div className="user-info">
-                        <button
-                            onClick={() => window.location.href = '/profile'}
-                            className="btn-profile"
-                            title="View Profile"
-                        >
-                            {currentUser?.profile_picture ? (
-                                <img
-                                    src={currentUser.profile_picture}
-                                    alt={currentUser.username}
-                                    className="header-avatar"
-                                />
-                            ) : (
-                                <div className="header-avatar-placeholder">
-                                    {currentUser?.username?.charAt(0).toUpperCase()}
-                                </div>
-                            )}
-                            <span className="username">@{currentUser?.username}</span>
-                        </button>
-                        <button onClick={onLogout} className="btn-logout">
-                            <BiLogOut /> Logout
-                        </button>
-                    </div>
-                </div>
+        <div className="user-profile-container">
+            <header className="user-profile-header">
+                <button onClick={() => navigate('/feed')} className="btn-back">
+                    <BiArrowBack /> Back
+                </button>
             </header>
 
-            <main className="feed-main">
-                <div className="create-post-section">
-                    {error && <div className="error-message">{error}</div>}
-
-                    {!isPostExpanded ? (
-                        // Collapsed state - compact input
-                        <div className="create-post-collapsed" onClick={() => setIsPostExpanded(true)}>
-                            <div className="collapsed-user-avatar">
-                                {currentUser?.profile_picture ? (
-                                    <img
-                                        src={currentUser.profile_picture}
-                                        alt={currentUser.username}
-                                        className="avatar-img"
-                                    />
-                                ) : (
-                                    <div className="avatar-placeholder">
-                                        {currentUser?.username?.charAt(0).toUpperCase()}
-                                    </div>
-                                )}
+            <div className="user-profile-content">
+                {/* Profile Info Section */}
+                <div className="user-profile-info">
+                    <div className="profile-avatar-large">
+                        {userData?.profile_picture ? (
+                            <img src={userData.profile_picture} alt={userData.username} />
+                        ) : (
+                            <div className="avatar-placeholder">
+                                {userData?.username?.charAt(0).toUpperCase()}
                             </div>
-                            <div className="collapsed-input-placeholder">
-                                What's on your mind, {currentUser?.username}?
-                            </div>
-                        </div>
-                    ) : (
-                        // Expanded state - full form
-                        <div className="create-post-expanded">
-                            <div className="expanded-header">
-                                <h2>Create Post</h2>
-                                <button
-                                    className="btn-collapse"
-                                    onClick={() => {
-                                        setIsPostExpanded(false);
-                                        setNewPost('');
-                                        handleRemoveImage();
-                                    }}
-                                >
-                                    ×
-                                </button>
-                            </div>
-                            <form onSubmit={handleCreatePost} className="create-post-form">
-                                <div className="form-user-info">
-                                    <div className="form-user-avatar">
-                                        {currentUser?.profile_picture ? (
-                                            <img
-                                                src={currentUser.profile_picture}
-                                                alt={currentUser.username}
-                                                className="avatar-img"
-                                            />
-                                        ) : (
-                                            <div className="avatar-placeholder">
-                                                {currentUser?.username?.charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <span className="form-username">@{currentUser?.username}</span>
-                                </div>
+                        )}
+                    </div>
 
-                                <textarea
-                                    value={newPost}
-                                    onChange={(e) => setNewPost(e.target.value)}
-                                    placeholder={`What's on your mind, ${currentUser?.username}?`}
-                                    rows="4"
-                                    maxLength="500"
-                                    autoFocus
-                                />
+                    <h1 className="profile-username">@{userData?.username}</h1>
 
-                                {imagePreview && (
-                                    <div className="image-preview">
-                                        <img src={imagePreview} alt="Preview" />
-                                        <button
-                                            type="button"
-                                            className="btn-remove-image"
-                                            onClick={handleRemoveImage}
-                                        >
-                                            <MdClose />
-                                        </button>
-                                    </div>
-                                )}
-
-                                <div className="form-footer">
-                                    <div className="form-footer-left">
-                                        <input
-                                            type="file"
-                                            id="image-upload"
-                                            accept="image/*"
-                                            onChange={handleImageSelect}
-                                            style={{ display: 'none' }}
-                                        />
-                                        <label htmlFor="image-upload" className="btn-image-upload">
-                                            <MdImage /> Photo
-                                        </label>
-                                        <span className="char-count">{newPost.length}/500</span>
-                                    </div>
-                                    <button type="submit" className="btn-post" disabled={posting || !newPost.trim()}>
-                                        {posting ? 'Posting...' : 'Post'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                    {userData?.full_name && (
+                        <p className="profile-fullname">{userData.full_name}</p>
                     )}
+
+                    {userData?.bio && (
+                        <p className="profile-bio">{userData.bio}</p>
+                    )}
+
+                    <div className="profile-stats">
+                        <div className="stat-item">
+                            <span className="stat-value">{posts.length}</span>
+                            <span className="stat-label">Posts</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="posts-section">
-                    <h2>Feed</h2>
-                    {loading ? (
-                        <div className="loading">
-                            <div className="spinner"></div>
-                            <p>Loading posts...</p>
-                        </div>
-                    ) : posts.length === 0 ? (
+                {/* Posts Section */}
+                <div className="user-posts-section">
+                    <h2>Posts</h2>
+                    {posts.length === 0 ? (
                         <div className="no-posts">
-                            <p>No posts yet. Be the first to share something! 🎉</p>
+                            <p>No posts yet</p>
                         </div>
                     ) : (
                         <div className="posts-list">
                             {posts.map((post) => (
                                 <div key={post.id} className="post-card">
                                     <div className="post-header">
-                                        <div
-                                            className="post-user clickable"
-                                            onClick={() => navigate(`/user/${post.user_id}`)}
-                                            style={{ cursor: 'pointer' }}
-                                        >
+                                        <div className="post-user">
                                             <div className="user-avatar">
                                                 {post.users?.profile_picture ? (
                                                     <img
@@ -448,16 +250,8 @@ function Feed({ onLogout }) {
                                                 <span className="post-time">{formatDate(post.created_at)}</span>
                                             </div>
                                         </div>
-                                        {currentUser?.id === post.user_id && (
-                                            <button
-                                                onClick={() => handleDeletePost(post.id)}
-                                                className="btn-delete"
-                                                title="Delete post"
-                                            >
-                                                <RiDeleteBin6Line />
-                                            </button>
-                                        )}
                                     </div>
+
                                     <div className="post-content">
                                         <p>{post.content}</p>
                                     </div>
@@ -468,7 +262,6 @@ function Feed({ onLogout }) {
                                         </div>
                                     )}
 
-                                    {/* Like and Comment Actions */}
                                     <div className="post-actions">
                                         <button
                                             className={`action-btn like-btn ${post.is_liked ? 'liked' : ''}`}
@@ -487,7 +280,6 @@ function Feed({ onLogout }) {
                                         </button>
                                     </div>
 
-                                    {/* Comments Section */}
                                     {expandedComments[post.id] && (
                                         <div className="comments-section">
                                             <form
@@ -556,9 +348,9 @@ function Feed({ onLogout }) {
                         </div>
                     )}
                 </div>
-            </main>
+            </div>
         </div>
     );
 }
 
-export default Feed;
+export default UserProfile;
