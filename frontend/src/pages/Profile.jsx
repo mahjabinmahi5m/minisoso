@@ -311,19 +311,6 @@ function Profile({ onLogout }) {
                                     {user?.bio && (
                                         <p className="profile-bio">{user.bio}</p>
                                     )}
-
-                                    <div className="profile-info-vertical">
-                                        <div className="info-item">
-                                            <span className="info-label">Email</span>
-                                            <span className="info-value">{user?.email}</span>
-                                        </div>
-                                        <div className="info-item">
-                                            <span className="info-label">Joined</span>
-                                            <span className="info-value">
-                                                {new Date(user?.created_at).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -537,6 +524,21 @@ function Profile({ onLogout }) {
                                     maxLength="150"
                                 />
                                 <span className="char-count">{formData.bio.length}/150</span>
+                            </div>
+
+                            {/* Account Info - Read Only */}
+                            <div className="account-info-section">
+                                <h3>Account Information</h3>
+                                <div className="info-row">
+                                    <span className="info-label">Email</span>
+                                    <span className="info-value">{user?.email}</span>
+                                </div>
+                                <div className="info-row">
+                                    <span className="info-label">Joined</span>
+                                    <span className="info-value">
+                                        {new Date(user?.created_at).toLocaleDateString()}
+                                    </span>
+                                </div>
                             </div>
 
                             <div className="form-actions">
