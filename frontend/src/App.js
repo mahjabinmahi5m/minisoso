@@ -8,6 +8,8 @@ import Profile from './pages/Profile';
 import UserProfile from './pages/UserProfile';
 import Messages from './pages/Messages';
 import Chat from './pages/Chat';
+import Groups from './pages/Groups';
+import GroupChat from './pages/GroupChat';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -112,6 +114,26 @@ function App() {
                         element={
                             isAuthenticated ? (
                                 <Chat />
+                            ) : (
+                                <Navigate to="/login" replace />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/groups"
+                        element={
+                            isAuthenticated ? (
+                                <Groups />
+                            ) : (
+                                <Navigate to="/login" replace />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/group/:groupId"
+                        element={
+                            isAuthenticated ? (
+                                <GroupChat />
                             ) : (
                                 <Navigate to="/login" replace />
                             )

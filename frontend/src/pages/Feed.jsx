@@ -8,6 +8,7 @@ import { RiDeleteBin6Line } from 'react-icons/ri';
 import { BiLogOut } from 'react-icons/bi';
 import { MdImage, MdClose } from 'react-icons/md';
 import { BsMoonStarsFill, BsSunFill } from 'react-icons/bs';
+import { HiUserGroup } from 'react-icons/hi';
 import { useTheme } from '../context/ThemeContext';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -322,6 +323,13 @@ function Feed({ onLogout }) {
                             title="Messages"
                         >
                             <IoChatbubbleEllipsesOutline />
+                        </button>
+                        <button
+                            onClick={() => navigate('/groups')}
+                            className="btn-groups"
+                            title="Groups"
+                        >
+                            <HiUserGroup />
                         </button>
                         <button
                             onClick={toggleTheme}
