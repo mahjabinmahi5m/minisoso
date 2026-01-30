@@ -6,6 +6,8 @@ import Signup from './pages/Signup';
 import Feed from './pages/Feed';
 import Profile from './pages/Profile';
 import UserProfile from './pages/UserProfile';
+import Messages from './pages/Messages';
+import Chat from './pages/Chat';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -90,6 +92,26 @@ function App() {
                         element={
                             isAuthenticated ? (
                                 <UserProfile />
+                            ) : (
+                                <Navigate to="/login" replace />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/messages"
+                        element={
+                            isAuthenticated ? (
+                                <Messages />
+                            ) : (
+                                <Navigate to="/login" replace />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/chat/:userId"
+                        element={
+                            isAuthenticated ? (
+                                <Chat />
                             ) : (
                                 <Navigate to="/login" replace />
                             )

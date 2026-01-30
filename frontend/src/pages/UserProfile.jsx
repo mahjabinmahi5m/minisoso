@@ -4,7 +4,7 @@ import axios from 'axios';
 import { BiArrowBack } from 'react-icons/bi';
 import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 import { FaRegComment } from 'react-icons/fa';
-import { IoSendSharp } from 'react-icons/io5';
+import { IoSendSharp, IoChatbubbleEllipsesOutline } from 'react-icons/io5';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -217,6 +217,17 @@ function UserProfile() {
                             <span className="stat-label">Posts</span>
                         </div>
                     </div>
+
+                    {/* Message Button - Only show if viewing another user's profile */}
+                    {currentUser?.id !== parseInt(userId) && (
+                        <button
+                            onClick={() => navigate(`/chat/${userId}`)}
+                            className="btn-message-user"
+                        >
+                            <IoChatbubbleEllipsesOutline />
+                            Message
+                        </button>
+                    )}
                 </div>
 
                 {/* Posts Section */}

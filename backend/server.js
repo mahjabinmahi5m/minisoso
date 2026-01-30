@@ -5,6 +5,7 @@ const cors = require('cors');
 // Import routes
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
+const messageRoutes = require('./routes/messages');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -16,6 +17,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Health check route
 app.get('/', (req, res) => {

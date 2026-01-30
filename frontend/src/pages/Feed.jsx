@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 import { FaRegComment } from 'react-icons/fa';
-import { IoSendSharp } from 'react-icons/io5';
+import { IoSendSharp, IoChatbubbleEllipsesOutline } from 'react-icons/io5';
 import { RiDeleteBin6Line } from 'react-icons/ri';
 import { BiLogOut } from 'react-icons/bi';
 import { MdImage, MdClose } from 'react-icons/md';
@@ -291,11 +291,11 @@ function Feed({ onLogout }) {
         <div className="feed-container">
             <header className="feed-header">
                 <div className="header-content">
-                    <div className="logo-title">
-                        <img src="/logo.svg" alt="Minisoso Logo" className="app-logo" />
-                        <h1>Minisoso</h1>
-                    </div>
-                    <div className="user-info">
+                    <div className="header-left">
+                        <div className="logo-title">
+                            <img src="/logo.svg" alt="Minisoso Logo" className="app-logo" />
+                            <h1>Minisoso</h1>
+                        </div>
                         <button
                             onClick={() => window.location.href = '/profile'}
                             className="btn-profile"
@@ -313,6 +313,15 @@ function Feed({ onLogout }) {
                                 </div>
                             )}
                             <span className="username">@{currentUser?.username}</span>
+                        </button>
+                    </div>
+                    <div className="header-right">
+                        <button
+                            onClick={() => navigate('/messages')}
+                            className="btn-messages"
+                            title="Messages"
+                        >
+                            <IoChatbubbleEllipsesOutline />
                         </button>
                         <button
                             onClick={toggleTheme}
