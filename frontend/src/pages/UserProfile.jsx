@@ -24,6 +24,12 @@ function UserProfile() {
     const [loadingComments, setLoadingComments] = useState({});
     const [postingComment, setPostingComment] = useState({});
 
+    // Follower states
+    const [followersCount, setFollowersCount] = useState(0);
+    const [followingCount, setFollowingCount] = useState(0);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
+
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
         setCurrentUser(user);
@@ -38,11 +44,67 @@ function UserProfile() {
             });
             setUserData(response.data.user);
             setPosts(response.data.posts);
+
+            // Fetch follower data
+            await fetchFollowerCounts();
+            await checkFollowStatus();
         } catch (err) {
             console.error('Error fetching user profile:', err);
             setError('Failed to load user profile');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchFollowerCounts = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${API_URL}/api/followers/counts/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setFollowersCount(response.data.followers_count || 0);
+            setFollowingCount(response.data.following_count || 0);
+        } catch (err) {
+            console.error('Error fetching follower counts:', err);
+        }
+    };
+
+    const checkFollowStatus = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${API_URL}/api/followers/is-following/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setIsFollowing(response.data.isFollowing);
+        } catch (err) {
+            console.error('Error checking follow status:', err);
+        }
+    };
+
+    const handleFollowToggle = async () => {
+        setFollowLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+
+            if (isFollowing) {
+                // Unfollow
+                await axios.delete(`${API_URL}/api/followers/unfollow/${userId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setIsFollowing(false);
+                setFollowersCount(prev => prev - 1);
+            } else {
+                // Follow
+                await axios.post(`${API_URL}/api/followers/follow/${userId}`, {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setIsFollowing(true);
+                setFollowersCount(prev => prev + 1);
+            }
+        } catch (err) {
+            console.error('Error toggling follow:', err);
+        } finally {
+            setFollowLoading(false);
         }
     };
 
@@ -213,20 +275,37 @@ function UserProfile() {
 
                     <div className="profile-stats">
                         <div className="stat-item">
-                            <span className="stat-value">{posts.length}</span>
-                            <span className="stat-label">Posts</span>
+                            <span className="stat-count">{posts.length}</span>
+                            <span className="stat-label">{posts.length === 1 ? 'Post' : 'Posts'}</span>
+                        </div>
+                        <div className="stat-item">
+                            <span className="stat-count">{followersCount}</span>
+                            <span className="stat-label">{followersCount === 1 ? 'Follower' : 'Followers'}</span>
+                        </div>
+                        <div className="stat-item">
+                            <span className="stat-count">{followingCount}</span>
+                            <span className="stat-label">Following</span>
                         </div>
                     </div>
 
-                    {/* Message Button - Only show if viewing another user's profile */}
-                    {currentUser?.id !== parseInt(userId) && (
-                        <button
-                            onClick={() => navigate(`/chat/${userId}`)}
-                            className="btn-message-user"
-                        >
-                            <IoChatbubbleEllipsesOutline />
-                            Message
-                        </button>
+                    {/* Action Buttons - Only show if viewing another user's profile */}
+                    {currentUser?.id !== userId && (
+                        <div className="profile-actions">
+                            <button
+                                onClick={handleFollowToggle}
+                                disabled={followLoading}
+                                className={`btn-follow ${isFollowing ? 'following' : ''}`}
+                            >
+                                {followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
+                            </button>
+                            <button
+                                onClick={() => navigate(`/chat/${userId}`)}
+                                className="btn-message-user"
+                            >
+                                <IoChatbubbleEllipsesOutline />
+                                Message
+                            </button>
+                        </div>
                     )}
                 </div>
 
