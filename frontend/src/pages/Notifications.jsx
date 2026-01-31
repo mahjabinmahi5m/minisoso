@@ -100,10 +100,50 @@ function Notifications() {
 
         // Navigate based on notification type
         if (notification.type === 'follow') {
+            // For follow notifications, go to the follower's profile
             navigate(`/user/${notification.actor_id}`);
-        } else if (notification.type === 'like' || notification.type === 'comment') {
+        } else if (notification.type === 'like') {
+            // For like notifications, go to Feed and scroll to the post
             if (notification.post_id) {
-                navigate(`/user/${notification.actor.id}`);
+                navigate('/feed', {
+                    state: {
+                        scrollToPost: notification.post_id,
+                        highlightPost: true
+                    }
+                });
+            }
+        } else if (notification.type === 'comment') {
+            // For comment notifications, go to Feed, scroll to post and expand comments
+            if (notification.post_id) {
+                navigate('/feed', {
+                    state: {
+                        scrollToPost: notification.post_id,
+                        expandComments: true,
+                        highlightComment: notification.comment_id,
+                        highlightPost: true
+                    }
+                });
+            }
+        } else if (notification.type === 'mention') {
+            // For mention notifications, go to the post/comment
+            if (notification.comment_id) {
+                // Mentioned in a comment
+                navigate('/feed', {
+                    state: {
+                        scrollToPost: notification.post_id,
+                        expandComments: true,
+                        highlightComment: notification.comment_id,
+                        highlightPost: true
+                    }
+                });
+            } else if (notification.post_id) {
+                // Mentioned in a post
+                navigate('/feed', {
+                    state: {
+                        scrollToPost: notification.post_id,
+                        highlightPost: true
+                    }
+                });
             }
         }
     };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 import { FaRegComment } from 'react-icons/fa';
@@ -12,12 +12,15 @@ import NotificationPrompt from '../components/NotificationPrompt';
 import MentionAutocomplete from '../components/MentionAutocomplete';
 import notificationManager from '../utils/notificationManager';
 import { getMentionContext, searchUsersForMention } from '../utils/mentionUtils';
+import '../styles/NotificationHighlight.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 function Feed({ onLogout }) {
     const navigate = useNavigate();
+    const location = useLocation();
     const [posts, setPosts] = useState([]);
+    const [highlightedPostId, setHighlightedPostId] = useState(null);
     const [newPost, setNewPost] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
@@ -136,6 +139,50 @@ function Feed({ onLogout }) {
             clearInterval(unreadInterval);
         };
     }, []);
+
+    // Handle navigation from notifications
+    useEffect(() => {
+        if (location.state?.scrollToPost && posts.length > 0) {
+            const { scrollToPost, expandComments, highlightPost, highlightComment } = location.state;
+
+            // Find the post element
+            setTimeout(() => {
+                const postElement = document.getElementById(`post-${scrollToPost}`);
+                if (postElement) {
+                    // Scroll to post
+                    postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Highlight post
+                    if (highlightPost) {
+                        setHighlightedPostId(scrollToPost);
+                        // Remove highlight after 3 seconds
+                        setTimeout(() => setHighlightedPostId(null), 3000);
+                    }
+
+                    // Expand comments if needed
+                    if (expandComments) {
+                        setExpandedComments(prev => ({ ...prev, [scrollToPost]: true }));
+
+                        // If there's a specific comment to highlight, scroll to it after comments load
+                        if (highlightComment) {
+                            setTimeout(() => {
+                                const commentElement = document.getElementById(`comment-${highlightComment}`);
+                                if (commentElement) {
+                                    commentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                    commentElement.classList.add('highlight-comment');
+                                    setTimeout(() => commentElement.classList.remove('highlight-comment'), 3000);
+                                }
+                            }, 500);
+                        }
+                    }
+                }
+            }, 300);
+
+            // Clear navigation state
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state, posts, navigate, location.pathname]);
+
 
     const fetchPosts = async () => {
         try {
@@ -807,7 +854,11 @@ function Feed({ onLogout }) {
                     ) : (
                         <div className="posts-list">
                             {posts.map((post) => (
-                                <div key={post.id} className="post-card">
+                                <div
+                                    key={post.id}
+                                    id={`post-${post.id}`}
+                                    className={`post-card ${highlightedPostId === post.id ? 'highlight-post' : ''}`}
+                                >
                                     <div className="post-header">
                                         <div
                                             className="post-user clickable"
@@ -910,7 +961,11 @@ function Feed({ onLogout }) {
                                                     <div className="loading-comments">Loading comments...</div>
                                                 ) : comments[post.id]?.length > 0 ? (
                                                     comments[post.id].map((comment) => (
-                                                        <div key={comment.id} className="comment-item">
+                                                        <div
+                                                            key={comment.id}
+                                                            id={`comment-${comment.id}`}
+                                                            className="comment-item"
+                                                        >
                                                             <div className="comment-avatar">
                                                                 {comment.users?.profile_picture ? (
                                                                     <img
