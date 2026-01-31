@@ -141,9 +141,9 @@ function Profile({ onLogout }) {
             // Clear any previous errors
             setError('');
 
-            if (file.size > 10 * 1024 * 1024) { // Increased to 10MB before compression
-                setError('Image size should be less than 10MB');
-                // Clear the file input
+            // Check if it's an image file
+            if (!file.type.startsWith('image/')) {
+                setError('Please select an image file');
                 e.target.value = '';
                 return;
             }
