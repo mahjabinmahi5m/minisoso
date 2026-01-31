@@ -26,6 +26,13 @@ function GroupChat() {
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
         setCurrentUser(user);
+
+        // Reset states when groupId changes
+        setMessages([]);
+        setGroup(null);
+        setLoading(true);
+        setShowGroupInfo(false);
+
         fetchGroupDetails();
         fetchMessages();
 
@@ -35,9 +42,15 @@ function GroupChat() {
         }, 3000);
 
         return () => {
+            // Cleanup on unmount or groupId change
             if (pollingInterval.current) {
                 clearInterval(pollingInterval.current);
             }
+            // Reset states to prevent stale data
+            setMessages([]);
+            setGroup(null);
+            setNewMessage('');
+            setShowGroupInfo(false);
         };
     }, [groupId]);
 
