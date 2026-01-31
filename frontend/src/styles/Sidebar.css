@@ -160,7 +160,7 @@
     transform: translateY(-50%);
     width: 4px;
     height: 0;
-    background: var(--primary-color);
+    background: var(--text-primary);
     border-radius: 4px 0 0 4px;
     transition: height 0.2s;
 }
@@ -179,7 +179,7 @@
 
 .menu-icon {
     font-size: 1.5rem;
-    color: var(--primary-color);
+    color: var(--text-primary);
     flex-shrink: 0;
 }
 
