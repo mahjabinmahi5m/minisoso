@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 import { FaRegComment } from 'react-icons/fa';
-import { IoSendSharp, IoChatbubbleEllipsesOutline, IoNotificationsOutline } from 'react-icons/io5';
+import { IoSendSharp, IoChatbubbleEllipsesOutline, IoNotificationsOutline, IoShareOutline } from 'react-icons/io5';
 import { RiDeleteBin6Line } from 'react-icons/ri';
 import { MdImage, MdClose } from 'react-icons/md';
 import { HiMenuAlt2 } from 'react-icons/hi';
@@ -13,6 +13,7 @@ import MentionAutocomplete from '../components/MentionAutocomplete';
 import notificationManager from '../utils/notificationManager';
 import { getMentionContext, searchUsersForMention } from '../utils/mentionUtils';
 import '../styles/NotificationHighlight.css';
+import '../styles/ShareButton.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -348,15 +349,6 @@ function Feed({ onLogout }) {
             setMentionUsers(users);
 
             if (users.length > 0) {
-                // Calculate position for autocomplete dropdown
-                const textarea = postTextareaRef.current;
-                if (textarea) {
-                    const rect = textarea.getBoundingClientRect();
-                    setMentionPosition({
-                        top: rect.bottom + window.scrollY,
-                        left: rect.left + window.scrollX
-                    });
-                }
                 setShowMentionAutocomplete(true);
             } else {
                 setShowMentionAutocomplete(false);
@@ -409,18 +401,6 @@ function Feed({ onLogout }) {
             setCommentMentionUsers(prev => ({ ...prev, [postId]: users }));
 
             if (users.length > 0) {
-                // Calculate position for autocomplete dropdown
-                const textarea = commentTextareaRefs.current[postId];
-                if (textarea) {
-                    const rect = textarea.getBoundingClientRect();
-                    setCommentMentionPosition(prev => ({
-                        ...prev,
-                        [postId]: {
-                            top: rect.bottom + window.scrollY,
-                            left: rect.left + window.scrollX
-                        }
-                    }));
-                }
                 setShowCommentMention(prev => ({ ...prev, [postId]: true }));
             } else {
                 setShowCommentMention(prev => ({ ...prev, [postId]: false }));
@@ -648,6 +628,49 @@ function Feed({ onLogout }) {
         }
     };
 
+    const handleSharePost = async (post) => {
+        const shareUrl = `${window.location.origin}/feed`; // You can make this post-specific later
+        const shareText = `Check out this post by @${post.users?.username}!\n\n${post.content}`;
+
+        // Try Web Share API first (mobile devices)
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `Post by @${post.users?.username}`,
+                    text: shareText,
+                    url: shareUrl
+                });
+                console.log('Post shared successfully');
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Error sharing:', err);
+                }
+            }
+        } else {
+            // Fallback: Copy link to clipboard
+            try {
+                await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
+                alert('✅ Post link copied to clipboard!');
+            } catch (err) {
+                console.error('Error copying to clipboard:', err);
+                // Final fallback: Show share dialog
+                const shareDialog = window.confirm(
+                    `Share this post?\n\n${shareText}\n\nClick OK to copy the link.`
+                );
+                if (shareDialog) {
+                    // Create temporary input to copy
+                    const tempInput = document.createElement('input');
+                    tempInput.value = `${shareText}\n\n${shareUrl}`;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    alert('✅ Link copied!');
+                }
+            }
+        }
+    };
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         const now = new Date();
@@ -799,7 +822,6 @@ function Feed({ onLogout }) {
                                         <MentionAutocomplete
                                             users={mentionUsers}
                                             onSelect={handleMentionSelect}
-                                            position={mentionPosition}
                                         />
                                     )}
                                 </div>
@@ -920,6 +942,15 @@ function Feed({ onLogout }) {
                                             <FaRegComment className="icon" />
                                             <span className="count">{post.comment_count || 0}</span>
                                         </button>
+
+                                        <button
+                                            className="action-btn share-btn"
+                                            onClick={() => handleSharePost(post)}
+                                            title="Share post"
+                                        >
+                                            <IoShareOutline className="icon" />
+                                            <span className="share-text">Share</span>
+                                        </button>
                                     </div>
 
                                     {/* Comments Section */}
@@ -943,7 +974,6 @@ function Feed({ onLogout }) {
                                                         <MentionAutocomplete
                                                             users={commentMentionUsers[post.id] || []}
                                                             onSelect={(user) => handleCommentMentionSelect(post.id, user)}
-                                                            position={commentMentionPosition[post.id] || { top: 0, left: 0 }}
                                                         />
                                                     )}
                                                 </div>
