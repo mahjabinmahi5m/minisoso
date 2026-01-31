@@ -8,6 +8,8 @@ import { RiDeleteBin6Line } from 'react-icons/ri';
 import { MdImage, MdClose } from 'react-icons/md';
 import { HiMenuAlt2 } from 'react-icons/hi';
 import Sidebar from '../components/Sidebar';
+import NotificationPrompt from '../components/NotificationPrompt';
+import notificationManager from '../utils/notificationManager';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -41,6 +43,17 @@ function Feed({ onLogout }) {
         fetchUnreadCount();
         fetchNotificationCount();
 
+        // Request notification permission
+        const requestNotificationPermission = async () => {
+            const granted = await notificationManager.requestPermission();
+            if (granted) {
+                console.log('✅ Push notifications enabled');
+            } else {
+                console.log('ℹ️ Push notifications disabled');
+            }
+        };
+        requestNotificationPermission();
+
         // Listen for profile updates
         const handleProfileUpdate = () => {
             const updatedUser = JSON.parse(localStorage.getItem('user'));
@@ -49,10 +62,61 @@ function Feed({ onLogout }) {
 
         window.addEventListener('profileUpdated', handleProfileUpdate);
 
+        // Store previous notification count for comparison
+        let previousNotificationCount = 0;
+
         // Poll for unread messages and notifications every 10 seconds
-        const unreadInterval = setInterval(() => {
+        const unreadInterval = setInterval(async () => {
             fetchUnreadCount();
-            fetchNotificationCount();
+
+            // Fetch notification count and show push notification if increased
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.get(`${API_URL}/api/notifications/unread-count`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                const newCount = response.data.count || 0;
+                setNotificationCount(newCount);
+
+                // If count increased, fetch latest notification and show push
+                if (newCount > previousNotificationCount && previousNotificationCount > 0) {
+                    // Fetch latest notification
+                    const notifResponse = await axios.get(`${API_URL}/api/notifications`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    const latestNotif = notifResponse.data.notifications[0];
+                    if (latestNotif && !latestNotif.is_read) {
+                        // Show push notification based on type
+                        if (latestNotif.type === 'like') {
+                            notificationManager.showLikeNotification(
+                                latestNotif.actor?.username || 'Someone',
+                                latestNotif.post?.image_url
+                            );
+                        } else if (latestNotif.type === 'comment') {
+                            notificationManager.showCommentNotification(
+                                latestNotif.actor?.username || 'Someone',
+                                latestNotif.comment?.content || 'commented on your post',
+                                latestNotif.post?.image_url
+                            );
+                        } else if (latestNotif.type === 'follow') {
+                            notificationManager.showFollowNotification(
+                                latestNotif.actor?.username || 'Someone',
+                                latestNotif.actor?.profile_picture
+                            );
+                        }
+                    }
+                }
+
+                previousNotificationCount = newCount;
+            } catch (err) {
+                console.error('Error fetching notification count:', err);
+            }
         }, 10000);
 
         return () => {
@@ -450,6 +514,9 @@ function Feed({ onLogout }) {
                     </div>
                 </div>
             </header>
+
+            {/* Notification Permission Prompt */}
+            <NotificationPrompt />
 
             <main className="feed-main">
                 <div className="create-post-section">
