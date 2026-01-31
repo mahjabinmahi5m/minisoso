@@ -5,7 +5,6 @@ import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 import { FaRegComment } from 'react-icons/fa';
 import { IoSendSharp, IoChatbubbleEllipsesOutline } from 'react-icons/io5';
 import { RiDeleteBin6Line } from 'react-icons/ri';
-import { BiLogOut } from 'react-icons/bi';
 import { MdImage, MdClose } from 'react-icons/md';
 import { HiMenuAlt2 } from 'react-icons/hi';
 import Sidebar from '../components/Sidebar';
@@ -329,9 +328,6 @@ function Feed({ onLogout }) {
                             title="Messages"
                         >
                             <IoChatbubbleEllipsesOutline />
-                        </button>
-                        <button onClick={onLogout} className="btn-logout">
-                            <BiLogOut /> Logout
                         </button>
                     </div>
                 </div>
