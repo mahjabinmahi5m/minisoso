@@ -8,7 +8,9 @@ import { RiDeleteBin6Line } from 'react-icons/ri';
 import { BiLogOut } from 'react-icons/bi';
 import { MdImage, MdClose } from 'react-icons/md';
 import { BsMoonStarsFill, BsSunFill } from 'react-icons/bs';
+import { HiMenuAlt2 } from 'react-icons/hi';
 import { useTheme } from '../context/ThemeContext';
+import Sidebar from '../components/Sidebar';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -24,6 +26,7 @@ function Feed({ onLogout }) {
     const [error, setError] = useState('');
     const [currentUser, setCurrentUser] = useState(null);
     const [isPostExpanded, setIsPostExpanded] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Comment states
     const [expandedComments, setExpandedComments] = useState({});
@@ -292,6 +295,13 @@ function Feed({ onLogout }) {
             <header className="feed-header">
                 <div className="header-content">
                     <div className="header-left">
+                        <button
+                            className="btn-hamburger"
+                            onClick={() => setIsSidebarOpen(true)}
+                            title="Menu"
+                        >
+                            <HiMenuAlt2 />
+                        </button>
                         <div className="logo-title">
                             <img src="/logo.svg" alt="Minisoso Logo" className="app-logo" />
                             <h1>Minisoso</h1>
@@ -588,6 +598,14 @@ function Feed({ onLogout }) {
                     )}
                 </div>
             </main>
+
+            {/* Sidebar Navigation */}
+            <Sidebar
+                isOpen={isSidebarOpen}
+                onClose={() => setIsSidebarOpen(false)}
+                currentUser={currentUser}
+                onLogout={onLogout}
+            />
         </div>
     );
 }
