@@ -7,16 +7,13 @@ import { IoSendSharp, IoChatbubbleEllipsesOutline } from 'react-icons/io5';
 import { RiDeleteBin6Line } from 'react-icons/ri';
 import { BiLogOut } from 'react-icons/bi';
 import { MdImage, MdClose } from 'react-icons/md';
-import { BsMoonStarsFill, BsSunFill } from 'react-icons/bs';
 import { HiMenuAlt2 } from 'react-icons/hi';
-import { useTheme } from '../context/ThemeContext';
 import Sidebar from '../components/Sidebar';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 function Feed({ onLogout }) {
     const navigate = useNavigate();
-    const { theme, toggleTheme } = useTheme();
     const [posts, setPosts] = useState([]);
     const [newPost, setNewPost] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
@@ -332,13 +329,6 @@ function Feed({ onLogout }) {
                             title="Messages"
                         >
                             <IoChatbubbleEllipsesOutline />
-                        </button>
-                        <button
-                            onClick={toggleTheme}
-                            className="btn-theme-toggle"
-                            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-                        >
-                            {theme === 'light' ? <BsMoonStarsFill /> : <BsSunFill />}
                         </button>
                         <button onClick={onLogout} className="btn-logout">
                             <BiLogOut /> Logout
