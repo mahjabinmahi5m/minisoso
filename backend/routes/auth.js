@@ -255,5 +255,36 @@ router.put('/profile', authMiddleware, upload.single('profile_picture'), async (
     }
 });
 
+// Search Users (for mention autocomplete)
+router.get('/search', authMiddleware, async (req, res) => {
+    try {
+        const { q } = req.query;
+
+        if (!q || q.trim() === '') {
+            return res.json({ users: [] });
+        }
+
+        const searchTerm = q.trim().toLowerCase();
+
+        // Search users by username or full_name
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('id, username, full_name, profile_picture')
+            .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
+            .limit(10);
+
+        if (error) {
+            console.error('User search error:', error);
+            return res.status(500).json({ error: 'Error searching users' });
+        }
+
+        res.json({ users: users || [] });
+    } catch (error) {
+        console.error('Search error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 module.exports = router;
+
 

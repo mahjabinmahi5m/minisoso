@@ -27,6 +27,59 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_KEY
 );
 
+// Helper function to extract @mentions from text
+function extractMentions(text) {
+    if (!text) return [];
+    const mentionRegex = /@([a-zA-Z0-9_.]+)/g;
+    const mentions = [];
+    let match;
+    while ((match = mentionRegex.exec(text)) !== null) {
+        if (!mentions.includes(match[1])) {
+            mentions.push(match[1]);
+        }
+    }
+    return mentions;
+}
+
+// Helper function to create mention notifications
+async function createMentionNotifications(mentionedUsernames, actorId, postId, commentId = null) {
+    if (!mentionedUsernames || mentionedUsernames.length === 0) return;
+
+    try {
+        // Get user IDs for mentioned usernames
+        const { data: mentionedUsers, error: userError } = await supabase
+            .from('users')
+            .select('id, username')
+            .in('username', mentionedUsernames);
+
+        if (userError || !mentionedUsers) {
+            console.error('Error fetching mentioned users:', userError);
+            return;
+        }
+
+        // Create notifications for each mentioned user
+        const notifications = mentionedUsers
+            .filter(user => user.id !== actorId) // Don't notify if mentioning self
+            .map(user => ({
+                recipient_id: user.id,
+                actor_id: actorId,
+                type: 'mention',
+                post_id: postId,
+                comment_id: commentId,
+                content: commentId ? 'mentioned you in a comment' : 'mentioned you in a post'
+            }));
+
+        if (notifications.length > 0) {
+            await supabase
+                .from('notifications')
+                .insert(notifications);
+        }
+    } catch (error) {
+        console.error('Error creating mention notifications:', error);
+    }
+}
+
+
 // Get All Posts
 router.get('/', authMiddleware, async (req, res) => {
     try {
@@ -238,6 +291,12 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
         if (error) {
             console.error('Supabase error:', error);
             return res.status(500).json({ error: 'Error creating post' });
+        }
+
+        // Extract mentions from post content and create notifications
+        const mentions = extractMentions(content);
+        if (mentions.length > 0) {
+            await createMentionNotifications(mentions, req.user.userId, newPost.id);
         }
 
         res.status(201).json({
@@ -498,6 +557,13 @@ router.post('/:id/comments', authMiddleware, async (req, res) => {
                 .select()
                 .single();
         }
+
+        // Extract mentions from comment content and create notifications
+        const mentions = extractMentions(content);
+        if (mentions.length > 0) {
+            await createMentionNotifications(mentions, userId, postId, newComment.id);
+        }
+
 
         // Get updated comment count
         const { count: commentCount } = await supabase

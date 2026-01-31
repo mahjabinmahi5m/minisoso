@@ -1,0 +1,153 @@
+/* Mention Autocomplete Styles */
+
+.mention-autocomplete {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 250px;
+    max-width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    animation: slideDown 0.2s ease;
+}
+
+.mention-list {
+    padding: 4px 0;
+}
+
+.mention-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.mention-item:hover {
+    background: var(--hover-bg);
+}
+
+.mention-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mention-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mention-avatar .avatar-placeholder {
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.mention-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.mention-username {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.mention-fullname {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Mention Highlighting in Text */
+.mention-highlight {
+    color: #0095f6;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.mention-highlight:hover {
+    text-decoration: underline;
+}
+
+/* Mention in Post/Comment Content */
+.mention-link {
+    color: #0095f6;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.mention-link:hover {
+    text-decoration: underline;
+}
+
+/* Animation */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Scrollbar */
+.mention-autocomplete::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mention-autocomplete::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.mention-autocomplete::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.mention-autocomplete::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .mention-autocomplete {
+        min-width: 200px;
+        max-width: 250px;
+    }
+
+    .mention-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .mention-username {
+        font-size: 13px;
+    }
+
+    .mention-fullname {
+        font-size: 11px;
+    }
+}

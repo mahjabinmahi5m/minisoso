@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
@@ -9,7 +9,9 @@ import { MdImage, MdClose } from 'react-icons/md';
 import { HiMenuAlt2 } from 'react-icons/hi';
 import Sidebar from '../components/Sidebar';
 import NotificationPrompt from '../components/NotificationPrompt';
+import MentionAutocomplete from '../components/MentionAutocomplete';
 import notificationManager from '../utils/notificationManager';
+import { getMentionContext, searchUsersForMention } from '../utils/mentionUtils';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -27,6 +29,16 @@ function Feed({ onLogout }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const [notificationCount, setNotificationCount] = useState(0);
+
+    // Mention states
+    const [showMentionAutocomplete, setShowMentionAutocomplete] = useState(false);
+    const [mentionUsers, setMentionUsers] = useState([]);
+    const postTextareaRef = useRef(null);
+
+    // Comment mention states
+    const [showCommentMention, setShowCommentMention] = useState({});
+    const [commentMentionUsers, setCommentMentionUsers] = useState({});
+    const commentTextareaRefs = useRef({});
 
     // Comment states
     const [expandedComments, setExpandedComments] = useState({});
@@ -251,6 +263,155 @@ function Feed({ onLogout }) {
             URL.revokeObjectURL(imagePreview);
         }
     };
+
+    // Mention handling functions
+    const searchUsers = async (query) => {
+        if (!query || query.length < 1) {
+            return [];
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${API_URL}/api/auth/search?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            return response.data.users || [];
+        } catch (error) {
+            console.error('Error searching users:', error);
+            return [];
+        }
+    };
+
+    const handlePostTextChange = async (e) => {
+        const text = e.target.value;
+        setNewPost(text);
+
+        // Get cursor position
+        const cursorPos = e.target.selectionStart;
+        const textBeforeCursor = text.substring(0, cursorPos);
+
+        // Check if user is mentioning
+        const mentionContext = getMentionContext(textBeforeCursor);
+
+        if (mentionContext.isMentioning) {
+            // Search users
+            const users = await searchUsers(mentionContext.query);
+            setMentionUsers(users);
+
+            if (users.length > 0) {
+                // Calculate position for autocomplete dropdown
+                const textarea = postTextareaRef.current;
+                if (textarea) {
+                    const rect = textarea.getBoundingClientRect();
+                    setMentionPosition({
+                        top: rect.bottom + window.scrollY,
+                        left: rect.left + window.scrollX
+                    });
+                }
+                setShowMentionAutocomplete(true);
+            } else {
+                setShowMentionAutocomplete(false);
+            }
+        } else {
+            setShowMentionAutocomplete(false);
+        }
+    };
+
+    const handleMentionSelect = (user) => {
+        const cursorPos = postTextareaRef.current.selectionStart;
+        const textBeforeCursor = newPost.substring(0, cursorPos);
+        const textAfterCursor = newPost.substring(cursorPos);
+
+        // Find the @ symbol position
+        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+        if (lastAtIndex !== -1) {
+            // Replace from @ to cursor with @username
+            const beforeMention = newPost.substring(0, lastAtIndex);
+            const newText = beforeMention + `@${user.username} ` + textAfterCursor;
+
+            setNewPost(newText);
+            setShowMentionAutocomplete(false);
+
+            // Set cursor position after the mention
+            setTimeout(() => {
+                const newCursorPos = lastAtIndex + user.username.length + 2; // +2 for @ and space
+                postTextareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+                postTextareaRef.current.focus();
+            }, 0);
+        }
+    };
+
+    // Comment mention handling functions
+    const handleCommentTextChange = async (postId, e) => {
+        const text = e.target.value;
+        setNewComment(prev => ({ ...prev, [postId]: text }));
+
+        // Get cursor position
+        const cursorPos = e.target.selectionStart;
+        const textBeforeCursor = text.substring(0, cursorPos);
+
+        // Check if user is mentioning
+        const mentionContext = getMentionContext(textBeforeCursor);
+
+        if (mentionContext.isMentioning) {
+            // Search users
+            const users = await searchUsers(mentionContext.query);
+            setCommentMentionUsers(prev => ({ ...prev, [postId]: users }));
+
+            if (users.length > 0) {
+                // Calculate position for autocomplete dropdown
+                const textarea = commentTextareaRefs.current[postId];
+                if (textarea) {
+                    const rect = textarea.getBoundingClientRect();
+                    setCommentMentionPosition(prev => ({
+                        ...prev,
+                        [postId]: {
+                            top: rect.bottom + window.scrollY,
+                            left: rect.left + window.scrollX
+                        }
+                    }));
+                }
+                setShowCommentMention(prev => ({ ...prev, [postId]: true }));
+            } else {
+                setShowCommentMention(prev => ({ ...prev, [postId]: false }));
+            }
+        } else {
+            setShowCommentMention(prev => ({ ...prev, [postId]: false }));
+        }
+    };
+
+    const handleCommentMentionSelect = (postId, user) => {
+        const textarea = commentTextareaRefs.current[postId];
+        if (!textarea) return;
+
+        const cursorPos = textarea.selectionStart;
+        const currentText = newComment[postId] || '';
+        const textBeforeCursor = currentText.substring(0, cursorPos);
+        const textAfterCursor = currentText.substring(cursorPos);
+
+        // Find the @ symbol position
+        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+        if (lastAtIndex !== -1) {
+            // Replace from @ to cursor with @username
+            const beforeMention = currentText.substring(0, lastAtIndex);
+            const newText = beforeMention + `@${user.username} ` + textAfterCursor;
+
+            setNewComment(prev => ({ ...prev, [postId]: newText }));
+            setShowCommentMention(prev => ({ ...prev, [postId]: false }));
+
+            // Set cursor position after the mention
+            setTimeout(() => {
+                const newCursorPos = lastAtIndex + user.username.length + 2;
+                textarea.setSelectionRange(newCursorPos, newCursorPos);
+                textarea.focus();
+            }, 0);
+        }
+    };
+
 
     const handleCreatePost = async (e) => {
         e.preventDefault();
@@ -576,14 +737,25 @@ function Feed({ onLogout }) {
                                     <span className="form-username">@{currentUser?.username}</span>
                                 </div>
 
-                                <textarea
-                                    value={newPost}
-                                    onChange={(e) => setNewPost(e.target.value)}
-                                    placeholder={`What's on your mind, ${currentUser?.username}?`}
-                                    rows="4"
-                                    maxLength="500"
-                                    autoFocus
-                                />
+                                <div style={{ position: 'relative' }}>
+                                    <textarea
+                                        ref={postTextareaRef}
+                                        value={newPost}
+                                        onChange={handlePostTextChange}
+                                        placeholder={`What's on your mind, ${currentUser?.username}?`}
+                                        rows="4"
+                                        maxLength="500"
+                                        autoFocus
+                                    />
+
+                                    {showMentionAutocomplete && (
+                                        <MentionAutocomplete
+                                            users={mentionUsers}
+                                            onSelect={handleMentionSelect}
+                                            position={mentionPosition}
+                                        />
+                                    )}
+                                </div>
 
                                 {imagePreview && (
                                     <div className="image-preview">
@@ -706,16 +878,24 @@ function Feed({ onLogout }) {
                                                 onSubmit={(e) => handleAddComment(e, post.id)}
                                                 className="comment-form"
                                             >
-                                                <input
-                                                    type="text"
-                                                    placeholder="Write a comment..."
-                                                    value={newComment[post.id] || ''}
-                                                    onChange={(e) => setNewComment({
-                                                        ...newComment,
-                                                        [post.id]: e.target.value
-                                                    })}
-                                                    maxLength="500"
-                                                />
+                                                <div style={{ position: 'relative', flex: 1 }}>
+                                                    <input
+                                                        ref={(el) => commentTextareaRefs.current[post.id] = el}
+                                                        type="text"
+                                                        placeholder="Write a comment..."
+                                                        value={newComment[post.id] || ''}
+                                                        onChange={(e) => handleCommentTextChange(post.id, e)}
+                                                        maxLength="500"
+                                                    />
+
+                                                    {showCommentMention[post.id] && (
+                                                        <MentionAutocomplete
+                                                            users={commentMentionUsers[post.id] || []}
+                                                            onSelect={(user) => handleCommentMentionSelect(post.id, user)}
+                                                            position={commentMentionPosition[post.id] || { top: 0, left: 0 }}
+                                                        />
+                                                    )}
+                                                </div>
                                                 <button
                                                     type="submit"
                                                     disabled={postingComment[post.id] || !newComment[post.id]?.trim()}
