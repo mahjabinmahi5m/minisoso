@@ -23,6 +23,7 @@ function Feed({ onLogout }) {
     const [currentUser, setCurrentUser] = useState(null);
     const [isPostExpanded, setIsPostExpanded] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     // Comment states
     const [expandedComments, setExpandedComments] = useState({});
@@ -36,6 +37,7 @@ function Feed({ onLogout }) {
         const user = JSON.parse(localStorage.getItem('user'));
         setCurrentUser(user);
         fetchPosts();
+        fetchUnreadCount();
 
         // Listen for profile updates
         const handleProfileUpdate = () => {
@@ -45,8 +47,12 @@ function Feed({ onLogout }) {
 
         window.addEventListener('profileUpdated', handleProfileUpdate);
 
+        // Poll for unread messages every 10 seconds
+        const unreadInterval = setInterval(fetchUnreadCount, 10000);
+
         return () => {
             window.removeEventListener('profileUpdated', handleProfileUpdate);
+            clearInterval(unreadInterval);
         };
     }, []);
 
@@ -64,6 +70,20 @@ function Feed({ onLogout }) {
             console.error('Error fetching posts:', err);
             setError('Failed to load posts');
             setLoading(false);
+        }
+    };
+
+    const fetchUnreadCount = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${API_URL}/api/messages/unread-count`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            setUnreadCount(response.data.count || 0);
+        } catch (err) {
+            console.error('Error fetching unread count:', err);
         }
     };
 
@@ -383,6 +403,11 @@ function Feed({ onLogout }) {
                             title="Messages"
                         >
                             <IoChatbubbleEllipsesOutline />
+                            {unreadCount > 0 && (
+                                <span className="notification-badge">
+                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                </span>
+                            )}
                         </button>
                         <button
                             className="btn-hamburger"
