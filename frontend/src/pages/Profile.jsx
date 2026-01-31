@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { BiArrowBack, BiEdit } from 'react-icons/bi';
 import { MdImage } from 'react-icons/md';
@@ -27,6 +27,7 @@ function Profile({ onLogout }) {
     const [followersCount, setFollowersCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
     const navigate = useNavigate();
+    const location = useLocation();
 
     // Comment states
     const [expandedComments, setExpandedComments] = useState({});
@@ -36,8 +37,14 @@ function Profile({ onLogout }) {
     const [postingComment, setPostingComment] = useState({});
 
     useEffect(() => {
+        // Check if edit mode should be enabled from URL
+        const searchParams = new URLSearchParams(location.search);
+        if (searchParams.get('edit') === 'true') {
+            setEditing(true);
+        }
+
         fetchUserProfile();
-    }, []);
+    }, [location.search]);
 
     const fetchUserProfile = async () => {
         try {
@@ -136,7 +143,8 @@ function Profile({ onLogout }) {
             // Dispatch event to notify other components
             window.dispatchEvent(new Event('profileUpdated'));
 
-            // Refresh profile
+            // Clean URL and refresh profile
+            navigate('/profile', { replace: true });
             await fetchUserProfile();
         } catch (err) {
             console.error('Error updating profile:', err);
@@ -586,6 +594,8 @@ function Profile({ onLogout }) {
                                         setSelectedImage(null);
                                         setImagePreview(null);
                                         setError('');
+                                        // Remove edit query parameter from URL
+                                        navigate('/profile', { replace: true });
                                     }}
                                     className="btn-cancel"
                                 >
