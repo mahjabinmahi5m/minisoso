@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 import { FaRegComment } from 'react-icons/fa';
-import { IoSendSharp, IoChatbubbleEllipsesOutline } from 'react-icons/io5';
+import { IoSendSharp, IoChatbubbleEllipsesOutline, IoNotificationsOutline } from 'react-icons/io5';
 import { RiDeleteBin6Line } from 'react-icons/ri';
 import { MdImage, MdClose } from 'react-icons/md';
 import { HiMenuAlt2 } from 'react-icons/hi';
@@ -24,6 +24,7 @@ function Feed({ onLogout }) {
     const [isPostExpanded, setIsPostExpanded] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [notificationCount, setNotificationCount] = useState(0);
 
     // Comment states
     const [expandedComments, setExpandedComments] = useState({});
@@ -38,6 +39,7 @@ function Feed({ onLogout }) {
         setCurrentUser(user);
         fetchPosts();
         fetchUnreadCount();
+        fetchNotificationCount();
 
         // Listen for profile updates
         const handleProfileUpdate = () => {
@@ -47,8 +49,11 @@ function Feed({ onLogout }) {
 
         window.addEventListener('profileUpdated', handleProfileUpdate);
 
-        // Poll for unread messages every 10 seconds
-        const unreadInterval = setInterval(fetchUnreadCount, 10000);
+        // Poll for unread messages and notifications every 10 seconds
+        const unreadInterval = setInterval(() => {
+            fetchUnreadCount();
+            fetchNotificationCount();
+        }, 10000);
 
         return () => {
             window.removeEventListener('profileUpdated', handleProfileUpdate);
@@ -84,6 +89,20 @@ function Feed({ onLogout }) {
             setUnreadCount(response.data.count || 0);
         } catch (err) {
             console.error('Error fetching unread count:', err);
+        }
+    };
+
+    const fetchNotificationCount = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${API_URL}/api/notifications/unread-count`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            setNotificationCount(response.data.count || 0);
+        } catch (err) {
+            console.error('Error fetching notification count:', err);
         }
     };
 
@@ -397,6 +416,18 @@ function Feed({ onLogout }) {
                         </button>
                     </div>
                     <div className="header-right">
+                        <button
+                            onClick={() => navigate('/notifications')}
+                            className="btn-notifications"
+                            title="Notifications"
+                        >
+                            <IoNotificationsOutline />
+                            {notificationCount > 0 && (
+                                <span className="notification-badge">
+                                    {notificationCount > 99 ? '99+' : notificationCount}
+                                </span>
+                            )}
+                        </button>
                         <button
                             onClick={() => navigate('/messages')}
                             className="btn-messages"

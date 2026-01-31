@@ -70,6 +70,18 @@ router.post('/follow/:userId', authenticateToken, async (req, res) => {
             });
         }
 
+        // Create notification for the followed user
+        await supabase
+            .from('notifications')
+            .insert([{
+                recipient_id: followingId,
+                actor_id: followerId,
+                type: 'follow',
+                content: 'started following you'
+            }])
+            .select()
+            .single();
+
         res.json({
             success: true,
             message: 'Successfully followed user',

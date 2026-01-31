@@ -298,10 +298,10 @@ router.post('/:id/like', authMiddleware, async (req, res) => {
         const { id: postId } = req.params;
         const userId = req.user.userId;
 
-        // Check if post exists
+        // Check if post exists and get post owner
         const { data: post, error: postError } = await supabase
             .from('posts')
-            .select('id')
+            .select('id, user_id')
             .eq('id', postId)
             .single();
 
@@ -329,6 +329,21 @@ router.post('/:id/like', authMiddleware, async (req, res) => {
         if (likeError) {
             console.error('Supabase error:', likeError);
             return res.status(500).json({ error: 'Error liking post' });
+        }
+
+        // Create notification for post owner (if not liking own post)
+        if (post.user_id !== userId) {
+            await supabase
+                .from('notifications')
+                .insert([{
+                    recipient_id: post.user_id,
+                    actor_id: userId,
+                    type: 'like',
+                    post_id: postId,
+                    content: 'liked your post'
+                }])
+                .select()
+                .single();
         }
 
         // Get updated like count
@@ -433,10 +448,10 @@ router.post('/:id/comments', authMiddleware, async (req, res) => {
             return res.status(400).json({ error: 'Comment is too long (max 500 characters)' });
         }
 
-        // Check if post exists
+        // Check if post exists and get post owner
         const { data: post, error: postError } = await supabase
             .from('posts')
-            .select('id')
+            .select('id, user_id')
             .eq('id', postId)
             .single();
 
@@ -466,6 +481,22 @@ router.post('/:id/comments', authMiddleware, async (req, res) => {
         if (commentError) {
             console.error('Supabase error:', commentError);
             return res.status(500).json({ error: 'Error creating comment' });
+        }
+
+        // Create notification for post owner (if not commenting on own post)
+        if (post.user_id !== userId) {
+            await supabase
+                .from('notifications')
+                .insert([{
+                    recipient_id: post.user_id,
+                    actor_id: userId,
+                    type: 'comment',
+                    post_id: postId,
+                    comment_id: newComment.id,
+                    content: 'commented on your post'
+                }])
+                .select()
+                .single();
         }
 
         // Get updated comment count

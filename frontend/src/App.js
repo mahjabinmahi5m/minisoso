@@ -12,6 +12,7 @@ import Groups from './pages/Groups';
 import GroupChat from './pages/GroupChat';
 import AccountInfo from './pages/AccountInfo';
 import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -157,6 +158,16 @@ function App() {
                         element={
                             isAuthenticated ? (
                                 <Settings />
+                            ) : (
+                                <Navigate to="/login" replace />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/notifications"
+                        element={
+                            isAuthenticated ? (
+                                <Notifications />
                             ) : (
                                 <Navigate to="/login" replace />
                             )

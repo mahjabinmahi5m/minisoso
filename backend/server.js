@@ -8,6 +8,7 @@ const postRoutes = require('./routes/posts');
 const messageRoutes = require('./routes/messages');
 const groupRoutes = require('./routes/groups');
 const followerRoutes = require('./routes/followers');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,6 +23,7 @@ app.use('/api/posts', postRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/followers', followerRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check route
 app.get('/', (req, res) => {
