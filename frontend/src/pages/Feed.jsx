@@ -291,13 +291,6 @@ function Feed({ onLogout }) {
             <header className="feed-header">
                 <div className="header-content">
                     <div className="header-left">
-                        <button
-                            className="btn-hamburger"
-                            onClick={() => setIsSidebarOpen(true)}
-                            title="Menu"
-                        >
-                            <HiMenuAlt2 />
-                        </button>
                         <div className="logo-title">
                             <img src="/logo.svg" alt="Minisoso Logo" className="app-logo" />
                             <h1>Minisoso</h1>
@@ -328,6 +321,13 @@ function Feed({ onLogout }) {
                             title="Messages"
                         >
                             <IoChatbubbleEllipsesOutline />
+                        </button>
+                        <button
+                            className="btn-hamburger"
+                            onClick={() => setIsSidebarOpen(true)}
+                            title="Menu"
+                        >
+                            <HiMenuAlt2 />
                         </button>
                     </div>
                 </div>
