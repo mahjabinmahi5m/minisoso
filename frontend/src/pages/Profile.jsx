@@ -87,15 +87,77 @@ function Profile({ onLogout }) {
         }
     };
 
-    const handleImageSelect = (e) => {
+    const compressImage = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Resize if image is too large
+                    const maxDimension = 1200;
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = (height / width) * maxDimension;
+                            width = maxDimension;
+                        } else {
+                            width = (width / height) * maxDimension;
+                            height = maxDimension;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Convert to blob with reduced quality
+                    canvas.toBlob(
+                        (blob) => {
+                            resolve(new File([blob], file.name, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now(),
+                            }));
+                        },
+                        'image/jpeg',
+                        0.7 // 70% quality
+                    );
+                };
+                img.onerror = reject;
+            };
+            reader.onerror = reject;
+        });
+    };
+
+    const handleImageSelect = async (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                setError('Image size should be less than 5MB');
+            // Clear any previous errors
+            setError('');
+
+            if (file.size > 10 * 1024 * 1024) { // Increased to 10MB before compression
+                setError('Image size should be less than 10MB');
+                // Clear the file input
+                e.target.value = '';
                 return;
             }
-            setSelectedImage(file);
-            setImagePreview(URL.createObjectURL(file));
+
+            try {
+                // Compress the image
+                const compressedFile = await compressImage(file);
+                setSelectedImage(compressedFile);
+                setImagePreview(URL.createObjectURL(compressedFile));
+            } catch (error) {
+                console.error('Error compressing image:', error);
+                setError('Failed to process image');
+                e.target.value = '';
+            }
         }
     };
 
