@@ -18,8 +18,11 @@ function Chat() {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+    const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
     const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
     const pollingInterval = useRef(null);
+    const previousMessageCount = useRef(0);
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -39,8 +42,30 @@ function Chat() {
     }, [userId]);
 
     useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+        // Only auto-scroll if:
+        // 1. User is already at the bottom (shouldAutoScroll is true)
+        // 2. New messages were added (not just initial load)
+        if (messages.length > 0) {
+            const isNewMessage = messages.length > previousMessageCount.current;
+            const isInitialLoad = previousMessageCount.current === 0;
+
+            if (shouldAutoScroll && (isNewMessage || isInitialLoad)) {
+                scrollToBottom();
+            }
+
+            previousMessageCount.current = messages.length;
+        }
+    }, [messages, shouldAutoScroll]);
+
+    // Detect if user has scrolled up manually
+    const handleScroll = () => {
+        if (!messagesContainerRef.current) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+        const isAtBottom = scrollHeight - scrollTop - clientHeight < 100; // 100px threshold
+
+        setShouldAutoScroll(isAtBottom);
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -87,9 +112,10 @@ function Chat() {
                 }
             );
 
-            // Add the new message to the list
+            // Add the new message to the list and enable auto-scroll
             setMessages([...messages, response.data.message]);
             setNewMessage('');
+            setShouldAutoScroll(true); // Always scroll when user sends a message
         } catch (error) {
             console.error('Error sending message:', error);
             alert('Failed to send message');
@@ -196,7 +222,11 @@ function Chat() {
                             <p className="hint">Send a message to start the conversation</p>
                         </div>
                     ) : (
-                        <div className="messages-list">
+                        <div
+                            className="messages-list"
+                            ref={messagesContainerRef}
+                            onScroll={handleScroll}
+                        >
                             {messages.map((message) => {
                                 const isSentByMe = message.sender_id === currentUser?.id;
                                 return (
