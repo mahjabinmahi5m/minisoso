@@ -11,8 +11,11 @@
   --input-bg: #fafafa;
   --card-bg: #ffffff;
   --hover-bg: #fafafa;
-  --primary-color: #0095f6;
-  --secondary-color: #1877f2;
+  --primary-color: #e1306c;
+  --secondary-color: #fd1d1d;
+  --gradient-start: #f09433;
+  --gradient-middle: #e6683c;
+  --gradient-end: #dc2743;
 }
 
 [data-theme="dark"] {
@@ -26,8 +29,11 @@
   --input-bg: #262626;
   --card-bg: #1a1a1a;
   --hover-bg: #262626;
-  --primary-color: #0095f6;
-  --secondary-color: #1877f2;
+  --primary-color: #e1306c;
+  --secondary-color: #fd1d1d;
+  --gradient-start: #f09433;
+  --gradient-middle: #e6683c;
+  --gradient-end: #dc2743;
 }
 
 * {
