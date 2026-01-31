@@ -571,21 +571,6 @@ function Profile({ onLogout }) {
                                 <span className="char-count">{formData.bio.length}/150</span>
                             </div>
 
-                            {/* Account Info - Read Only */}
-                            <div className="account-info-section">
-                                <h3>Account Information</h3>
-                                <div className="info-row">
-                                    <span className="info-label">Email</span>
-                                    <span className="info-value">{user?.email}</span>
-                                </div>
-                                <div className="info-row">
-                                    <span className="info-label">Joined</span>
-                                    <span className="info-value">
-                                        {new Date(user?.created_at).toLocaleDateString()}
-                                    </span>
-                                </div>
-                            </div>
-
                             <div className="form-actions">
                                 <button
                                     type="button"

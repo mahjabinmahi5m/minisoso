@@ -10,6 +10,7 @@ import Messages from './pages/Messages';
 import Chat from './pages/Chat';
 import Groups from './pages/Groups';
 import GroupChat from './pages/GroupChat';
+import AccountInfo from './pages/AccountInfo';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -135,6 +136,16 @@ function App() {
                         element={
                             isAuthenticated ? (
                                 <GroupChat />
+                            ) : (
+                                <Navigate to="/login" replace />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/account-info"
+                        element={
+                            isAuthenticated ? (
+                                <AccountInfo />
                             ) : (
                                 <Navigate to="/login" replace />
                             )

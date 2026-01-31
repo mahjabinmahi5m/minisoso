@@ -80,10 +80,10 @@ function Sidebar({ isOpen, onClose, currentUser, onLogout }) {
 
                     <button
                         className="menu-item"
-                        onClick={() => handleNavigation('/profile?tab=info')}
+                        onClick={() => handleNavigation('/account-info')}
                     >
                         <IoInformationCircleOutline className="menu-icon" />
-                        <span>Profile Information</span>
+                        <span>Account Information</span>
                     </button>
 
                     <button
